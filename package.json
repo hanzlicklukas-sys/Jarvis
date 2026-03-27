@@ -1,0 +1,56 @@
+{
+  "name": "jarvis-ai",
+  "version": "1.0.0",
+  "description": "JARVIS - Advanced AI Assistant with Claude integration",
+  "main": "src/main.js",
+  "bin": "src/main.js",
+  "pkg": {
+    "scripts": "src/**/*.js",
+    "assets": [
+      "data/**",
+      "assets/**",
+      "ui/**",
+      ".env"
+    ],
+    "targets": [
+      "node20-win-x64",
+      "node20-macos-arm64",
+      "node20-macos-x64"
+    ]
+  },
+  "scripts": {
+    "start": "node src/main.js",
+    "dev": "node --watch src/main.js",
+    "build:win": "pkg . --target node20-win-x64 --output dist/jarvis-win.exe",
+    "build:mac-arm": "pkg . --target node20-macos-arm64 --output dist/jarvis-mac-arm",
+    "build:mac-intel": "pkg . --target node20-macos-x64 --output dist/jarvis-mac-intel",
+    "build:app": "electron-builder --mac --win",
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "axios": "^1.7.9",
+    "better-sqlite3": "^11.8.1",
+    "chalk": "^4.1.2",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "electron": "^34.0.0",
+    "keytar": "^7.9.0",
+    "node-cron": "^3.0.3",
+    "node-fetch": "^2.7.0",
+    "node-record-lpcm16": "^1.0.1",
+    "node-schedule": "^2.1.1",
+    "openai": "^4.77.0",
+    "png-to-ico": "^2.1.8",
+    "readline": "^1.3.0",
+    "say": "^0.16.0",
+    "sharp": "^0.33.5",
+    "systeminformation": "^5.23.5"
+  },
+  "devDependencies": {
+    "electron-builder": "^25.1.8",
+    "pkg": "^5.8.1"
+  },
+  "author": "JARVIS Project",
+  "license": "MIT"
+}
