@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS AI Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg-secondary: #111111;
+      --cyan: #00e5ff;
+      --cyan-dim: #00bcd4;
+      --yellow: #ffd600;
+      --green: #00e676;
+      --red: #ff1744;
+      --gray: #546e7a;
+      --white: #eceff1;
+      --border: #1e2a30;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      background: var(--bg);
+      color: var(--white);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: text;
+    }
+
+    /* Title bar drag area */
+    #titlebar {
+      -webkit-app-region: drag;
+      height: 28px;
+      background: #0d0d0d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    #titlebar span {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    /* Output area */
+    #output {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #output::-webkit-scrollbar { width: 6px; }
+    #output::-webkit-scrollbar-track { background: transparent; }
+    #output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .line { line-height: 1.6; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
+    .line.banner { color: var(--cyan); font-size: 11px; white-space: pre; }
+    .line.jarvis { color: var(--cyan); }
+    .line.user { color: var(--white); opacity: 0.85; }
+    .line.user::before { content: 'You: '; color: var(--gray); }
+    .line.tool { color: var(--yellow); font-size: 12px; }
+    .line.tool::before { content: '⚡ '; }
+    .line.success { color: var(--green); font-size: 12px; }
+    .line.error { color: var(--red); font-size: 12px; }
+    .line.info { color: var(--gray); font-size: 12px; font-style: italic; }
+    .line.separator { color: var(--border); }
+
+    .jarvis-label { color: var(--cyan-dim); font-size: 11px; margin-top: 8px; }
+
+    /* Thinking indicator */
+    #thinking {
+      display: none;
+      color: var(--gray);
+      font-size: 12px;
+      padding: 4px 0;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    #thinking.visible { display: block; }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* Input area */
+    #input-area {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-secondary);
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    #prompt-label {
+      color: var(--cyan);
+      font-size: 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #user-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 13px;
+      caret-color: var(--cyan);
+    }
+
+    #user-input::placeholder { color: var(--gray); }
+
+    /* Blinking cursor for readonly display */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--cyan);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      margin-left: 2px;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Status bar */
+    #statusbar {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 20px;
+      background: #0d0d0d;
+      border-top: 1px solid var(--border);
+      font-size: 10px;
+      color: var(--gray);
+      flex-shrink: 0;
+    }
+
+    #voice-indicator { color: var(--gray); }
+    #voice-indicator.active { color: var(--red); }
+  </style>
+</head>
+<body>
+  <div id="titlebar"><span>J.A.R.V.I.S</span></div>
+
+  <div id="output">
+    <div class="line banner">  ██╗ █████╗ ██████╗ ██╗   ██╗██╗███████╗
+  ██║██╔══██╗██╔══██╗██║   ██║██║██╔════╝
+  ██║███████║██████╔╝██║   ██║██║███████╗
+  ██║██╔══██║██╔══██╗╚██╗ ██╔╝██║╚════██║
+  ██║██║  ██║██║  ██║ ╚████╔╝ ██║███████║
+  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝</div>
+    <div class="line info">Just A Rather Very Intelligent System — Powered by Claude AI</div>
+    <div class="line info">Commands: /help  /clear  /memory  /voice  /forget &lt;id&gt;  /quit</div>
+    <div class="line separator">────────────────────────────────────────────────────</div>
+  </div>
+
+  <div id="thinking">⠋ JARVIS is thinking...</div>
+
+  <div id="input-area">
+    <span id="prompt-label">You »</span>
+    <input
+      id="user-input"
+      type="text"
+      placeholder="Ask JARVIS anything..."
+      autocomplete="off"
+      spellcheck="false"
+      autofocus
+    />
+  </div>
+
+  <div id="statusbar">
+    <span id="model-label">Model: claude-opus-4-5</span>
+    <span id="voice-indicator">🎙 Voice: OFF</span>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const output = document.getElementById('output');
+    const input = document.getElementById('user-input');
+    const thinking = document.getElementById('thinking');
+    const voiceIndicator = document.getElementById('voice-indicator');
+
+    let voiceMode = false;
+    let currentJarvisLine = null;
+
+    function scrollToBottom() {
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function addLine(text, className) {
+      const div = document.createElement('div');
+      div.className = `line ${className}`;
+      div.textContent = text;
+      output.appendChild(div);
+      scrollToBottom();
+      return div;
+    }
+
+    function startJarvisLine() {
+      const label = document.createElement('div');
+      label.className = 'jarvis-label';
+      label.textContent = 'JARVIS:';
+      output.appendChild(label);
+
+      currentJarvisLine = document.createElement('div');
+      currentJarvisLine.className = 'line jarvis';
+      output.appendChild(currentJarvisLine);
+      scrollToBottom();
+    }
+
+    function appendToJarvis(token) {
+      if (!currentJarvisLine) startJarvisLine();
+      currentJarvisLine.textContent += token;
+      scrollToBottom();
+    }
+
+    function endJarvisLine() {
+      currentJarvisLine = null;
+    }
+
+    // Handle send
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      if (text.startsWith('/')) {
+        addLine(text, 'user');
+        ipcRenderer.send('command', text);
+        return;
+      }
+
+      addLine(text, 'user');
+      thinking.classList.add('visible');
+      input.disabled = true;
+
+      ipcRenderer.send('chat', text);
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // IPC listeners
+    ipcRenderer.on('token', (_, token) => {
+      thinking.classList.remove('visible');
+      appendToJarvis(token);
+    });
+
+    ipcRenderer.on('tool-use', (_, { name, input: toolInput }) => {
+      thinking.classList.remove('visible');
+      const inputStr = typeof toolInput === 'object' ? JSON.stringify(toolInput) : String(toolInput);
+      addLine(`${name} — ${inputStr.substring(0, 80)}`, 'tool');
+    });
+
+    ipcRenderer.on('response-end', (_, fullText) => {
+      thinking.classList.remove('visible');
+      endJarvisLine();
+      input.disabled = false;
+      input.focus();
+    });
+
+    ipcRenderer.on('error', (_, msg) => {
+      thinking.classList.remove('visible');
+      endJarvisLine();
+      addLine('Error: ' + msg, 'error');
+      input.disabled = false;
+      input.focus();
+    });
+
+    ipcRenderer.on('info', (_, msg) => {
+      addLine(msg, 'info');
+    });
+
+    ipcRenderer.on('success', (_, msg) => {
+      addLine(msg, 'success');
+    });
+
+    ipcRenderer.on('clear', () => {
+      // Keep banner lines
+      const lines = output.querySelectorAll('.line:not(.banner):not(.separator)');
+      lines.forEach(l => l.remove());
+      addLine('Conversation cleared.', 'info');
+    });
+
+    ipcRenderer.on('voice-toggle', (_, isOn) => {
+      voiceMode = isOn;
+      voiceIndicator.textContent = `🎙 Voice: ${isOn ? 'ON' : 'OFF'}`;
+      voiceIndicator.className = isOn ? 'active' : '';
+    });
+
+    ipcRenderer.on('memories', (_, memories) => {
+      addLine('─── Memories ───────────────────────────────────', 'separator');
+      if (!memories || memories.length === 0) {
+        addLine('No memories stored yet.', 'info');
+      } else {
+        memories.forEach(m => {
+          addLine(`[${m.id}] (${m.type}) ${m.content.substring(0, 80)}`, 'info');
+        });
+      }
+      addLine('────────────────────────────────────────────────', 'separator');
+    });
+  </script>
+</body>
+</html>
