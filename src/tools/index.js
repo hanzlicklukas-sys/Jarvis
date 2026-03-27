@@ -258,7 +258,7 @@ const tools = {
 
   web_search: {
     name: 'web_search',
-    description: 'Search the web using Brave Search API (falls back to DuckDuckGo).',
+    description: 'Search the web using DuckDuckGo (no API key required).',
     input_schema: {
       type: 'object',
       properties: {
@@ -268,33 +268,22 @@ const tools = {
     },
     async execute({ query }) {
       try {
-        const braveKey = process.env.BRAVE_SEARCH_API_KEY;
-
-        if (braveKey && braveKey !== 'your_brave_search_key_here') {
-          const ax = getAxios();
-          const resp = await ax.get('https://api.search.brave.com/res/v1/web/search', {
-            headers: { 'Accept': 'application/json', 'X-Subscription-Token': braveKey },
-            params: { q: query, count: 10 }
-          });
-          const results = (resp.data.web?.results || []).map(r => ({
-            title: r.title,
-            url: r.url,
-            description: r.description
-          }));
-          memory.logAction('web_search', { query }, `${results.length} Brave results`, true);
-          return { results, source: 'brave', query };
-        }
-
-        // Fallback: DuckDuckGo instant answer API
         const fetch = getNodeFetch();
-        const resp = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`);
+        const resp = await fetch(
+          `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`,
+          { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; JARVIS/1.0)' } }
+        );
         const data = await resp.json();
         const results = [];
-        if (data.AbstractText) results.push({ title: data.Heading, url: data.AbstractURL, description: data.AbstractText });
-        (data.RelatedTopics || []).slice(0, 8).forEach(t => {
-          if (t.Text && t.FirstURL) results.push({ title: t.Text.substring(0, 80), url: t.FirstURL, description: t.Text });
+        if (data.AbstractText) {
+          results.push({ title: data.Heading, url: data.AbstractURL, description: data.AbstractText });
+        }
+        (data.RelatedTopics || []).slice(0, 9).forEach(t => {
+          if (t.Text && t.FirstURL) {
+            results.push({ title: t.Text.substring(0, 80), url: t.FirstURL, description: t.Text });
+          }
         });
-        memory.logAction('web_search', { query }, `${results.length} DDG results`, true);
+        memory.logAction('web_search', { query }, `${results.length} results`, true);
         return { results, source: 'duckduckgo', query };
       } catch (err) {
         memory.logAction('web_search', { query }, err.message, false);
@@ -359,40 +348,64 @@ const tools = {
 
   get_weather: {
     name: 'get_weather',
-    description: 'Get current weather for a city.',
+    description: 'Get current weather for a city using Open-Meteo (free, no API key required).',
     input_schema: {
       type: 'object',
       properties: {
-        city: { type: 'string', description: 'City name (e.g. "London" or "New York,US")' }
+        city: { type: 'string', description: 'City name (e.g. "London" or "New York")' }
       },
       required: ['city']
     },
     async execute({ city }) {
       try {
-        const apiKey = process.env.WEATHER_API_KEY;
-        if (!apiKey || apiKey === 'your_openweathermap_key_here') {
-          return { error: 'WEATHER_API_KEY not configured. Add it to your .env file.' };
-        }
         const ax = getAxios();
-        const resp = await ax.get('https://api.openweathermap.org/data/2.5/weather', {
-          params: { q: city, appid: apiKey, units: 'metric' }
+
+        // Step 1: geocode city → lat/lon via Open-Meteo's free geocoding API
+        const geoResp = await ax.get('https://geocoding-api.open-meteo.com/v1/search', {
+          params: { name: city, count: 1, language: 'en', format: 'json' }
         });
-        const d = resp.data;
+        const locations = geoResp.data.results;
+        if (!locations || locations.length === 0) {
+          return { error: `City not found: ${city}` };
+        }
+        const { latitude, longitude, name, country } = locations[0];
+
+        // Step 2: fetch current weather from Open-Meteo (completely free)
+        const weatherResp = await ax.get('https://api.open-meteo.com/v1/forecast', {
+          params: {
+            latitude,
+            longitude,
+            current: 'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,precipitation',
+            wind_speed_unit: 'ms',
+            timezone: 'auto'
+          }
+        });
+        const c = weatherResp.data.current;
+
+        // WMO weather interpretation codes → description
+        const wmoDesc = {
+          0: 'clear sky', 1: 'mainly clear', 2: 'partly cloudy', 3: 'overcast',
+          45: 'fog', 48: 'icy fog', 51: 'light drizzle', 53: 'drizzle', 55: 'heavy drizzle',
+          61: 'light rain', 63: 'rain', 65: 'heavy rain', 71: 'light snow', 73: 'snow',
+          75: 'heavy snow', 80: 'rain showers', 81: 'showers', 82: 'violent showers',
+          95: 'thunderstorm', 96: 'thunderstorm with hail', 99: 'thunderstorm with heavy hail'
+        };
+
         const result = {
-          city: d.name,
-          country: d.sys.country,
-          temperature_c: Math.round(d.main.temp),
-          feels_like_c: Math.round(d.main.feels_like),
-          humidity_percent: d.main.humidity,
-          description: d.weather[0].description,
-          wind_speed_ms: d.wind.speed,
-          visibility_km: (d.visibility / 1000).toFixed(1)
+          city: name,
+          country,
+          temperature_c: Math.round(c.temperature_2m),
+          feels_like_c: Math.round(c.apparent_temperature),
+          humidity_percent: c.relative_humidity_2m,
+          description: wmoDesc[c.weather_code] || `code ${c.weather_code}`,
+          wind_speed_ms: c.wind_speed_10m,
+          precipitation_mm: c.precipitation
         };
         memory.logAction('get_weather', { city }, JSON.stringify(result), true);
         return result;
       } catch (err) {
         memory.logAction('get_weather', { city }, err.message, false);
-        return { error: err.response?.data?.message || err.message };
+        return { error: err.message };
       }
     }
   },

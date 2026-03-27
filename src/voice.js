@@ -3,8 +3,8 @@
 let say;
 try { say = require('say'); } catch { say = null; }
 
-let OpenAI;
-try { OpenAI = require('openai').OpenAI; } catch { OpenAI = null; }
+let nodeWhisper;
+try { nodeWhisper = require('nodejs-whisper').nodewhisper; } catch { nodeWhisper = null; }
 
 let recorder;
 try { recorder = require('node-record-lpcm16'); } catch { recorder = null; }
@@ -12,22 +12,6 @@ try { recorder = require('node-record-lpcm16'); } catch { recorder = null; }
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-
-let _isSpeaking = false;
-let _currentSpeech = null;
-let openaiClient = null;
-
-function getOpenAIClient() {
-  if (!openaiClient) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey || apiKey === 'your_openai_key_here_for_whisper_stt') {
-      throw new Error('OPENAI_API_KEY not configured. Add it to .env for STT support.');
-    }
-    if (!OpenAI) throw new Error('openai package not available');
-    openaiClient = new OpenAI({ apiKey });
-  }
-  return openaiClient;
-}
 
 /**
  * Speak text using native TTS (non-blocking)
@@ -88,7 +72,8 @@ function isSpeaking() {
 }
 
 /**
- * Record audio and transcribe via OpenAI Whisper
+ * Record audio and transcribe locally via whisper.cpp (nodejs-whisper, no API key needed)
+ * On first use, nodejs-whisper auto-downloads the base.en model (~150 MB).
  * @param {number} durationMs - recording duration in ms (default 5000)
  * @returns {Promise<string>} transcribed text
  */
@@ -96,13 +81,15 @@ async function listen(durationMs = 5000) {
   if (!recorder) {
     throw new Error('node-record-lpcm16 not available. Install it for voice input.');
   }
+  if (!nodeWhisper) {
+    throw new Error('nodejs-whisper not available. Run: npm install nodejs-whisper');
+  }
 
-  const client = getOpenAIClient();
   const tempFile = path.join(os.tmpdir(), `jarvis_rec_${Date.now()}.wav`);
 
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const fileStream = fs.createWriteStream(tempFile);
-    
+
     const recording = recorder.record({
       sampleRate: 16000,
       channels: 1,
@@ -120,35 +107,34 @@ async function listen(durationMs = 5000) {
       reject(new Error(`Recording error: ${err.message}`));
     });
 
-    // Stop after duration
-    setTimeout(async () => {
+    setTimeout(() => {
       recording.stop();
       fileStream.end();
-      
-      // Wait for file to be written
-      await new Promise(res => fileStream.on('finish', res));
-
-      try {
-        const stats = fs.statSync(tempFile);
-        if (stats.size < 1000) {
-          fs.unlinkSync(tempFile);
-          return resolve('');
-        }
-
-        const transcription = await client.audio.transcriptions.create({
-          file: fs.createReadStream(tempFile),
-          model: 'whisper-1',
-          language: 'en'
-        });
-
-        fs.unlinkSync(tempFile);
-        resolve(transcription.text || '');
-      } catch (err) {
-        try { fs.unlinkSync(tempFile); } catch { /* ignore */ }
-        reject(new Error(`Transcription error: ${err.message}`));
-      }
+      fileStream.on('finish', resolve);
     }, durationMs);
   });
+
+  try {
+    const stats = fs.statSync(tempFile);
+    if (stats.size < 1000) {
+      fs.unlinkSync(tempFile);
+      return '';
+    }
+
+    // Transcribe locally — downloads base.en model on first run
+    const transcript = await nodeWhisper(tempFile, {
+      modelName: 'base.en',
+      autoDownloadModelName: 'base.en',
+      verbose: false,
+      whisperOptions: { outputInText: true }
+    });
+
+    fs.unlinkSync(tempFile);
+    return (transcript || '').trim();
+  } catch (err) {
+    try { fs.unlinkSync(tempFile); } catch { /* ignore */ }
+    throw new Error(`Transcription error: ${err.message}`);
+  }
 }
 
 module.exports = { speak, stopSpeaking, isSpeaking, listen };
