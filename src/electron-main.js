@@ -6,6 +6,15 @@ const fs = require('fs');
 
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
+// Electron apps don't inherit shell PATH — add Homebrew locations so sox/rec can be found
+process.env.PATH = [
+  process.env.PATH,
+  '/usr/local/bin',
+  '/opt/homebrew/bin',
+  '/usr/bin',
+  '/bin'
+].filter(Boolean).join(':');
+
 let win = null;
 let tray = null;
 let memory, brain, voice;

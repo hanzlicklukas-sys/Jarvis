@@ -90,15 +90,11 @@ async function listen(durationMs = 5000) {
   await new Promise((resolve, reject) => {
     const fileStream = fs.createWriteStream(tempFile);
 
-    // On packaged Electron apps PATH is not inherited — use full path to rec
-    const recPath = process.platform === 'win32' ? 'sox'
-      : (require('fs').existsSync('/opt/homebrew/bin/rec') ? '/opt/homebrew/bin/rec' : '/usr/local/bin/rec');
-
     const recording = recorder.record({
       sampleRate: 16000,
       channels: 1,
       audioType: 'wav',
-      recorder: recPath,
+      recorder: process.platform === 'win32' ? 'sox' : 'rec',
       silence: '1.0',
       threshold: 0.5
     });
