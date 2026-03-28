@@ -3,320 +3,1041 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JARVIS AI Assistant</title>
+  <title>JARVIS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --bg-secondary: #111111;
-      --cyan: #00e5ff;
-      --cyan-dim: #00bcd4;
-      --yellow: #ffd600;
-      --green: #00e676;
-      --red: #ff1744;
-      --gray: #546e7a;
-      --white: #eceff1;
-      --border: #1e2a30;
+      --bg: #060608;
+      --bg2: #0d0d12;
+      --bg3: #13131a;
+      --panel: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+      --cyan: #00d4ff;
+      --cyan-dim: rgba(0,212,255,0.5);
+      --blue: #0066ff;
+      --text: #f0f0f0;
+      --text2: #888;
+      --text3: #444;
+      --green: #00ff88;
+      --red: #ff4444;
+      --tool-bg: rgba(0,212,255,0.08);
+      --tool-border: rgba(0,212,255,0.3);
     }
 
     body {
-      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-family: 'Inter', sans-serif;
       background: var(--bg);
-      color: var(--white);
+      color: var(--text);
       height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      user-select: text;
     }
 
-    /* Title bar drag area */
-    #titlebar {
+    /* ── TOP BAR ── */
+    #topbar {
       -webkit-app-region: drag;
-      height: 28px;
-      background: #0d0d0d;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px 0 80px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      flex-shrink: 0;
+    }
+    #topbar .logo {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: var(--cyan);
+      text-transform: uppercase;
+      -webkit-app-region: no-drag;
+    }
+    #topbar .actions {
+      display: flex;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+    }
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text2);
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-bottom: 1px solid var(--border);
-      flex-shrink: 0;
+      font-size: 15px;
+      transition: all 0.2s;
     }
-    #titlebar span {
-      font-size: 11px;
-      color: var(--gray);
-      letter-spacing: 3px;
-      text-transform: uppercase;
+    .icon-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    /* ── BODY LAYOUT ── */
+    #body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
     }
 
-    /* Output area */
-    #output {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px 20px;
+    /* ── LEFT SIDEBAR ── */
+    #sidebar {
+      width: 260px;
+      border-right: 1px solid var(--border);
+      background: var(--bg2);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      transition: transform 0.3s ease, width 0.3s ease;
+      flex-shrink: 0;
     }
-
-    #output::-webkit-scrollbar { width: 6px; }
-    #output::-webkit-scrollbar-track { background: transparent; }
-    #output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    .line { line-height: 1.6; font-size: 13px; white-space: pre-wrap; word-break: break-word; }
-    .line.banner { color: var(--cyan); font-size: 11px; white-space: pre; }
-    .line.jarvis { color: var(--cyan); }
-    .line.user { color: var(--white); opacity: 0.85; }
-    .line.user::before { content: 'You: '; color: var(--gray); }
-    .line.tool { color: var(--yellow); font-size: 12px; }
-    .line.tool::before { content: '⚡ '; }
-    .line.success { color: var(--green); font-size: 12px; }
-    .line.error { color: var(--red); font-size: 12px; }
-    .line.info { color: var(--gray); font-size: 12px; font-style: italic; }
-    .line.separator { color: var(--border); }
-
-    .jarvis-label { color: var(--cyan-dim); font-size: 11px; margin-top: 8px; }
-
-    /* Thinking indicator */
-    #thinking {
-      display: none;
-      color: var(--gray);
-      font-size: 12px;
-      padding: 4px 0;
-      animation: pulse 1.5s ease-in-out infinite;
+    #sidebar.collapsed {
+      width: 0;
+      overflow: hidden;
     }
-    #thinking.visible { display: block; }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.4; }
-      50% { opacity: 1; }
+    #sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
     }
-
-    /* Input area */
-    #input-area {
+    #new-chat-btn {
+      width: 100%;
+      padding: 9px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--cyan-dim);
+      background: transparent;
+      color: var(--cyan);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
       display: flex;
       align-items: center;
-      padding: 12px 20px;
-      border-top: 1px solid var(--border);
-      background: var(--bg-secondary);
-      gap: 12px;
-      flex-shrink: 0;
+      gap: 8px;
     }
+    #new-chat-btn:hover { background: rgba(0,212,255,0.08); }
 
-    #prompt-label {
-      color: var(--cyan);
-      font-size: 13px;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
+    #sidebar-section { padding: 12px 16px 8px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--text3); text-transform: uppercase; }
 
-    #user-input {
+    #chat-list {
       flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--white);
-      font-family: inherit;
-      font-size: 13px;
-      caret-color: var(--cyan);
+      overflow-y: auto;
+      padding: 4px 8px;
     }
+    #chat-list::-webkit-scrollbar { width: 4px; }
+    #chat-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    #user-input::placeholder { color: var(--gray); }
-
-    /* Blinking cursor for readonly display */
-    .cursor {
-      display: inline-block;
-      width: 8px;
-      height: 14px;
-      background: var(--cyan);
-      animation: blink 1s step-end infinite;
-      vertical-align: text-bottom;
-      margin-left: 2px;
+    .chat-item {
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+      position: relative;
     }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .chat-item:hover { background: var(--panel); }
+    .chat-item.active { background: rgba(0,212,255,0.08); }
+    .chat-item .chat-preview { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-item .chat-time { font-size: 10px; color: var(--text3); margin-top: 2px; }
+    .chat-item .del-chat { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); opacity: 0; font-size: 12px; color: var(--text3); cursor: pointer; }
+    .chat-item:hover .del-chat { opacity: 1; }
 
-    /* Status bar */
-    #statusbar {
-      display: flex;
-      justify-content: space-between;
-      padding: 4px 20px;
-      background: #0d0d0d;
+    #sidebar-footer {
+      padding: 12px 8px;
       border-top: 1px solid var(--border);
-      font-size: 10px;
-      color: var(--gray);
+    }
+    .sidebar-footer-btn {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .sidebar-footer-btn:hover { background: var(--panel); color: var(--text); }
+
+    /* ── MAIN AREA ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── ORB ── */
+    #orb-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 300px;
+      height: 300px;
       flex-shrink: 0;
     }
 
-    #voice-indicator { color: var(--gray); }
-    #voice-indicator.active { color: var(--red); }
+    /* Halo rings */
+    .halo {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid var(--cyan);
+      opacity: 0.12;
+      pointer-events: none;
+    }
+    .halo-1 { width: 240px; height: 240px; animation: halo-rotate 8s linear infinite; }
+    .halo-2 { width: 270px; height: 270px; animation: halo-rotate 12s linear infinite reverse; opacity: 0.07; }
+    .halo-3 { width: 300px; height: 300px; animation: halo-rotate 18s linear infinite; opacity: 0.04; }
+
+    @keyframes halo-rotate {
+      from { transform: rotate(0deg) scale(1); }
+      to { transform: rotate(360deg) scale(1); }
+    }
+
+    /* The orb itself */
+    #orb {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #00d4ff 0%, #0044cc 45%, #000033 100%);
+      box-shadow:
+        0 0 40px rgba(0,212,255,0.25),
+        0 0 80px rgba(0,100,255,0.15),
+        inset 0 0 40px rgba(0,0,0,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: box-shadow 0.4s ease;
+      animation: orb-idle 3s ease-in-out infinite;
+      position: relative;
+      z-index: 2;
+      user-select: none;
+    }
+
+    #orb-icon {
+      font-size: 44px;
+      filter: drop-shadow(0 0 8px rgba(0,212,255,0.8));
+      pointer-events: none;
+      transition: all 0.3s;
+    }
+
+    /* Orb states */
+    #orb.idle { animation: orb-idle 3s ease-in-out infinite; }
+    @keyframes orb-idle {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,212,255,0.25), 0 0 80px rgba(0,100,255,0.15), inset 0 0 40px rgba(0,0,0,0.5); }
+      50% { transform: scale(1.04); box-shadow: 0 0 55px rgba(0,212,255,0.35), 0 0 100px rgba(0,100,255,0.2), inset 0 0 40px rgba(0,0,0,0.5); }
+    }
+
+    #orb.listening {
+      animation: orb-listen 0.8s ease-in-out infinite;
+      background: radial-gradient(circle at 40% 35%, #ffffff 0%, #00d4ff 30%, #0066ff 70%, #000033 100%);
+    }
+    @keyframes orb-listen {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0,212,255,0.6), 0 0 120px rgba(0,212,255,0.3); }
+      50% { transform: scale(1.08); box-shadow: 0 0 80px rgba(0,212,255,0.9), 0 0 160px rgba(0,212,255,0.5); }
+    }
+
+    #orb.thinking {
+      animation: orb-think 1.5s ease-in-out infinite;
+      background: radial-gradient(circle at 40% 35%, #aa88ff 0%, #6600cc 45%, #000033 100%);
+    }
+    @keyframes orb-think {
+      0% { filter: hue-rotate(0deg); transform: scale(1); }
+      50% { filter: hue-rotate(60deg); transform: scale(1.02); }
+      100% { filter: hue-rotate(0deg); transform: scale(1); }
+    }
+
+    #orb.speaking {
+      animation: orb-speak 0.6s ease-in-out infinite;
+      background: radial-gradient(circle at 40% 35%, #88ffcc 0%, #00cc88 40%, #003322 100%);
+    }
+    @keyframes orb-speak {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(0,255,136,0.4), 0 0 100px rgba(0,255,136,0.2); }
+      25% { transform: scale(1.06); }
+      75% { transform: scale(0.97); }
+    }
+
+    /* Pulse rings for listening */
+    #orb.listening ~ .halo { animation-duration: 1.5s; opacity: 0.3; }
+    #orb.thinking ~ .halo { animation-duration: 2s; }
+
+    /* ── USER TEXT (above orb) ── */
+    #user-text {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text2);
+      max-width: 500px;
+      min-height: 24px;
+      margin-bottom: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-style: italic;
+    }
+    #user-text.visible { opacity: 1; }
+
+    /* ── RESPONSE TEXT (below orb) ── */
+    #response-area {
+      max-width: 600px;
+      width: 100%;
+      padding: 0 24px;
+      text-align: center;
+      min-height: 80px;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 16px;
+    }
+    #response-area::-webkit-scrollbar { width: 3px; }
+    #response-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    #response-text {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text);
+      font-weight: 300;
+    }
+    #response-text .code-inline {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    #response-text pre {
+      text-align: left;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 8px 0;
+      white-space: pre-wrap;
+    }
+
+    /* ── TOOL BADGES ── */
+    #tool-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+      min-height: 28px;
+    }
+    .tool-badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      background: var(--tool-bg);
+      border: 1px solid var(--tool-border);
+      font-size: 11px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      animation: badge-in 0.2s ease;
+    }
+    @keyframes badge-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    .tool-badge .spinner {
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid var(--cyan-dim);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── STATUS TEXT ── */
+    #status-text {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 8px;
+      min-height: 18px;
+      transition: color 0.3s;
+      text-align: center;
+    }
+    #status-text.listening { color: var(--cyan); }
+    #status-text.thinking { color: #aa88ff; }
+    #status-text.speaking { color: var(--green); }
+    #status-text.error { color: var(--red); }
+
+    /* ── BOTTOM INPUT ── */
+    #input-bar {
+      width: 100%;
+      padding: 12px 20px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(13,13,18,0.8);
+      backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    #text-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+      height: 42px;
+      line-height: 22px;
+    }
+    #text-input:focus { border-color: var(--cyan-dim); }
+    #text-input::placeholder { color: var(--text3); }
+    #send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: none;
+      background: var(--cyan);
+      color: #000;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    #send-btn:hover { background: #33ddff; transform: scale(1.05); }
+    #send-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; }
+
+    /* ── RIGHT SETTINGS PANEL ── */
+    #settings-panel {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 380px;
+      height: 100vh;
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      z-index: 100;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #settings-panel.open { right: 0; }
+
+    .panel-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .panel-header h2 { font-size: 15px; font-weight: 600; }
+    .panel-close { background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; padding: 4px; }
+    .panel-close:hover { color: var(--text); }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .panel-body::-webkit-scrollbar { width: 4px; }
+    .panel-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; display: block; }
+    .form-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--cyan-dim); }
+    textarea.form-input { resize: vertical; min-height: 100px; font-size: 12px; line-height: 1.5; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle {
+      width: 44px;
+      height: 24px;
+      border-radius: 12px;
+      background: var(--text3);
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--cyan); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 3px;
+      left: 3px;
+      transition: left 0.2s;
+    }
+    .toggle.on::after { left: 23px; }
+
+    .save-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 8px;
+      border: none;
+      background: var(--cyan);
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .save-btn:hover { background: #33ddff; }
+
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+    .memory-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .memory-item .mem-content { flex: 1; font-size: 12px; color: var(--text2); line-height: 1.4; }
+    .memory-item .mem-type { font-size: 10px; color: var(--cyan); background: var(--tool-bg); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+    .memory-item .mem-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 0; flex-shrink: 0; }
+    .memory-item .mem-del:hover { color: var(--red); }
+
+    /* ── OVERLAY ── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #overlay.visible { opacity: 1; pointer-events: all; }
+
+    /* ── VOICE HINT ── */
+    #voice-hint {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: var(--text3);
+      white-space: nowrap;
+    }
+
+    /* ── ERROR TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(255,68,68,0.15);
+      border: 1px solid rgba(255,68,68,0.4);
+      color: #ff8888;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
-  <div id="titlebar"><span>J.A.R.V.I.S</span></div>
 
-  <div id="output">
-    <div class="line banner">  ██╗ █████╗ ██████╗ ██╗   ██╗██╗███████╗
-  ██║██╔══██╗██╔══██╗██║   ██║██║██╔════╝
-  ██║███████║██████╔╝██║   ██║██║███████╗
-  ██║██╔══██║██╔══██╗╚██╗ ██╔╝██║╚════██║
-  ██║██║  ██║██║  ██║ ╚████╔╝ ██║███████║
-  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═══╝  ╚═╝╚══════╝</div>
-    <div class="line info">Just A Rather Very Intelligent System — Powered by Claude AI</div>
-    <div class="line info">Commands: /help  /clear  /memory  /voice  /forget &lt;id&gt;  /quit</div>
-    <div class="line separator">────────────────────────────────────────────────────</div>
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <span class="logo">J·A·R·V·I·S</span>
+    <div class="actions">
+      <button class="icon-btn" id="sidebar-toggle" title="Toggle history">☰</button>
+      <button class="icon-btn" id="memory-btn" title="Memory">🧠</button>
+      <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
+    </div>
   </div>
 
-  <div id="thinking">⠋ JARVIS is thinking...</div>
+  <!-- BODY -->
+  <div id="body">
 
-  <div id="input-area">
-    <span id="prompt-label">You »</span>
-    <input
-      id="user-input"
-      type="text"
-      placeholder="Ask JARVIS anything..."
-      autocomplete="off"
-      spellcheck="false"
-      autofocus
-    />
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <div id="sidebar-header">
+        <button id="new-chat-btn">＋ New conversation</button>
+      </div>
+      <div id="sidebar-section">Recent</div>
+      <div id="chat-list"></div>
+      <div id="sidebar-footer">
+        <button class="sidebar-footer-btn" id="clear-btn">🗑 Clear conversation</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+
+      <!-- User text above orb -->
+      <div id="user-text"></div>
+
+      <!-- ORB -->
+      <div id="orb-container">
+        <div id="orb" class="idle" title="Click to speak">
+          <span id="orb-icon">🎙</span>
+        </div>
+        <div class="halo halo-1"></div>
+        <div class="halo halo-2"></div>
+        <div class="halo halo-3"></div>
+      </div>
+
+      <!-- Tool badges -->
+      <div id="tool-badges"></div>
+
+      <!-- Status -->
+      <div id="status-text">Click the orb to speak, or type below</div>
+
+      <!-- Response below orb -->
+      <div id="response-area">
+        <div id="response-text"></div>
+      </div>
+
+      <div id="voice-hint">⌘⇧J to show/hide · Click orb to speak</div>
+
+    </div>
+
   </div>
 
-  <div id="statusbar">
-    <span id="model-label">Model: claude-opus-4-5</span>
-    <span id="voice-indicator">🎙 Voice: OFF</span>
+  <!-- BOTTOM INPUT -->
+  <div id="input-bar">
+    <textarea id="text-input" placeholder="Or type here..." rows="1"></textarea>
+    <button id="send-btn">↑</button>
   </div>
+
+  <!-- SETTINGS PANEL -->
+  <div id="overlay"></div>
+  <div id="settings-panel">
+    <div class="panel-header">
+      <h2 id="panel-title">Settings</h2>
+      <button class="panel-close" id="panel-close">✕</button>
+    </div>
+    <div class="panel-body" id="panel-body">
+      <!-- filled dynamically -->
+    </div>
+  </div>
+
+  <!-- ERROR TOAST -->
+  <div id="toast"></div>
 
   <script>
-    const { ipcRenderer } = require('electron');
+  (function() {
+    'use strict';
 
-    const output = document.getElementById('output');
-    const input = document.getElementById('user-input');
-    const thinking = document.getElementById('thinking');
-    const voiceIndicator = document.getElementById('voice-indicator');
+    // ── State ──────────────────────────────────────────────────────────────────
+    const state = {
+      orbState: 'idle',       // idle | listening | thinking | speaking
+      isProcessing: false,
+      conversationHistory: [],
+      settings: {},
+      currentConvId: null,
+      panelMode: null,        // null | 'settings' | 'memory'
+    };
 
-    let voiceMode = false;
-    let currentJarvisLine = null;
+    // ── Elements ───────────────────────────────────────────────────────────────
+    const orb = document.getElementById('orb');
+    const orbIcon = document.getElementById('orb-icon');
+    const userText = document.getElementById('user-text');
+    const responseText = document.getElementById('response-text');
+    const responseArea = document.getElementById('response-area');
+    const toolBadges = document.getElementById('tool-badges');
+    const statusText = document.getElementById('status-text');
+    const textInput = document.getElementById('text-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatList = document.getElementById('chat-list');
+    const settingsPanel = document.getElementById('settings-panel');
+    const overlay = document.getElementById('overlay');
+    const panelBody = document.getElementById('panel-body');
+    const panelTitle = document.getElementById('panel-title');
+    const toast = document.getElementById('toast');
 
-    function scrollToBottom() {
-      output.scrollTop = output.scrollHeight;
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function setOrbState(s) {
+      state.orbState = s;
+      orb.className = s;
+      const icons = { idle: '🎙', listening: '🎤', thinking: '⚡', speaking: '🔊' };
+      orbIcon.textContent = icons[s] || '🎙';
+      statusText.className = s;
+      const labels = {
+        idle: 'Click the orb to speak, or type below',
+        listening: 'Listening… speak now',
+        thinking: 'JARVIS is thinking…',
+        speaking: 'JARVIS is speaking…'
+      };
+      statusText.textContent = labels[s] || '';
     }
 
-    function addLine(text, className) {
-      const div = document.createElement('div');
-      div.className = `line ${className}`;
-      div.textContent = text;
-      output.appendChild(div);
-      scrollToBottom();
-      return div;
+    function showToast(msg, duration = 3000) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
     }
 
-    function startJarvisLine() {
-      const label = document.createElement('div');
-      label.className = 'jarvis-label';
-      label.textContent = 'JARVIS:';
-      output.appendChild(label);
-
-      currentJarvisLine = document.createElement('div');
-      currentJarvisLine.className = 'line jarvis';
-      output.appendChild(currentJarvisLine);
-      scrollToBottom();
+    function showUserText(text) {
+      userText.textContent = '"' + text + '"';
+      userText.classList.add('visible');
     }
 
-    function appendToJarvis(token) {
-      if (!currentJarvisLine) startJarvisLine();
-      currentJarvisLine.textContent += token;
-      scrollToBottom();
+    function clearResponse() {
+      responseText.innerHTML = '';
+      toolBadges.innerHTML = '';
     }
 
-    function endJarvisLine() {
-      currentJarvisLine = null;
+    // Basic markdown → HTML
+    function renderMarkdown(text) {
+      return text
+        .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
+        .replace(/`([^`]+)`/g, '<span class="code-inline">$1</span>')
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
     }
 
-    // Handle send
-    async function sendMessage() {
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
+    // ── Tool badges ────────────────────────────────────────────────────────────
+    const activeBadges = {};
 
-      if (text.startsWith('/')) {
-        addLine(text, 'user');
-        ipcRenderer.send('command', text);
-        return;
+    function showToolBadge(name) {
+      const badge = document.createElement('div');
+      badge.className = 'tool-badge';
+      badge.innerHTML = `<span class="spinner"></span><span>🔧 ${name.replace(/_/g,' ')}</span>`;
+      toolBadges.appendChild(badge);
+      activeBadges[name] = badge;
+    }
+
+    function removeToolBadge(name) {
+      if (activeBadges[name]) {
+        activeBadges[name].remove();
+        delete activeBadges[name];
       }
-
-      addLine(text, 'user');
-      thinking.classList.add('visible');
-      input.disabled = true;
-
-      ipcRenderer.send('chat', text);
     }
 
-    input.addEventListener('keydown', (e) => {
+    // ── Streaming ──────────────────────────────────────────────────────────────
+    let streamBuffer = '';
+    let streamTimeout = null;
+
+    function appendToken(token) {
+      streamBuffer += token;
+      if (streamTimeout) clearTimeout(streamTimeout);
+      streamTimeout = setTimeout(flushBuffer, 16);
+    }
+
+    function flushBuffer() {
+      if (streamBuffer) {
+        responseText.innerHTML = renderMarkdown(streamBuffer);
+        responseArea.scrollTop = responseArea.scrollHeight;
+      }
+    }
+
+    // ── Send message ───────────────────────────────────────────────────────────
+    async function sendMessage(text) {
+      if (!text.trim() || state.isProcessing) return;
+      state.isProcessing = true;
+      sendBtn.disabled = true;
+
+      showUserText(text);
+      clearResponse();
+      setOrbState('thinking');
+      streamBuffer = '';
+
+      // Add to history
+      state.conversationHistory.push({ role: 'user', content: text });
+      if (state.conversationHistory.length > 40) state.conversationHistory.splice(0, 2);
+
+      // Save to localStorage
+      saveConversation(text);
+
+      // Remove old listeners
+      window.jarvis.removeListeners('chat:token');
+      window.jarvis.removeListeners('chat:done');
+      window.jarvis.removeListeners('chat:error');
+
+      // Set up listeners
+      window.jarvis.onToken((data) => {
+        if (data.type === 'text') {
+          appendToken(data.token);
+        } else if (data.type === 'tool_start') {
+          showToolBadge(data.toolName);
+        } else if (data.type === 'tool_end') {
+          removeToolBadge(data.toolName);
+        }
+      });
+
+      window.jarvis.onDone((data) => {
+        flushBuffer();
+        toolBadges.innerHTML = '';
+        state.conversationHistory.push({ role: 'assistant', content: data.fullResponse });
+        setOrbState('idle');
+        state.isProcessing = false;
+        sendBtn.disabled = false;
+        userText.classList.remove('visible');
+      });
+
+      window.jarvis.onError((data) => {
+        toolBadges.innerHTML = '';
+        showToast('Error: ' + data.error);
+        setOrbState('idle');
+        state.isProcessing = false;
+        sendBtn.disabled = false;
+      });
+
+      window.jarvis.sendMessage(text, state.conversationHistory);
+    }
+
+    // ── Voice flow ─────────────────────────────────────────────────────────────
+    async function startVoice() {
+      if (state.isProcessing) return;
+      setOrbState('listening');
+
+      try {
+        const result = await window.jarvis.listen();
+        if (result.error) {
+          showToast('Voice error: ' + result.error);
+          setOrbState('idle');
+          return;
+        }
+        const transcript = (result.transcript || '').trim();
+        if (!transcript) {
+          showToast('No speech detected');
+          setOrbState('idle');
+          return;
+        }
+        textInput.value = '';
+        await sendMessage(transcript);
+      } catch (err) {
+        showToast('Voice error: ' + err.message);
+        setOrbState('idle');
+      }
+    }
+
+    orb.addEventListener('click', startVoice);
+
+    // ── Text input ─────────────────────────────────────────────────────────────
+    textInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendMessage();
+        const text = textInput.value.trim();
+        if (text) {
+          textInput.value = '';
+          sendMessage(text);
+        }
       }
     });
 
-    // IPC listeners
-    ipcRenderer.on('token', (_, token) => {
-      thinking.classList.remove('visible');
-      appendToJarvis(token);
+    sendBtn.addEventListener('click', () => {
+      const text = textInput.value.trim();
+      if (text) {
+        textInput.value = '';
+        sendMessage(text);
+      }
     });
 
-    ipcRenderer.on('tool-use', (_, { name, input: toolInput }) => {
-      thinking.classList.remove('visible');
-      const inputStr = typeof toolInput === 'object' ? JSON.stringify(toolInput) : String(toolInput);
-      addLine(`${name} — ${inputStr.substring(0, 80)}`, 'tool');
+    // ── Sidebar toggle ─────────────────────────────────────────────────────────
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
     });
 
-    ipcRenderer.on('response-end', (_, fullText) => {
-      thinking.classList.remove('visible');
-      endJarvisLine();
-      input.disabled = false;
-      input.focus();
+    // ── New chat ───────────────────────────────────────────────────────────────
+    document.getElementById('new-chat-btn').addEventListener('click', () => {
+      state.conversationHistory = [];
+      clearResponse();
+      userText.classList.remove('visible');
+      userText.textContent = '';
+      setOrbState('idle');
+      state.currentConvId = null;
     });
 
-    ipcRenderer.on('error', (_, msg) => {
-      thinking.classList.remove('visible');
-      endJarvisLine();
-      addLine('Error: ' + msg, 'error');
-      input.disabled = false;
-      input.focus();
+    // ── Clear ──────────────────────────────────────────────────────────────────
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      state.conversationHistory = [];
+      clearResponse();
+      userText.classList.remove('visible');
     });
 
-    ipcRenderer.on('info', (_, msg) => {
-      addLine(msg, 'info');
-    });
+    // ── Past conversations (localStorage) ─────────────────────────────────────
+    function getConversations() {
+      try { return JSON.parse(localStorage.getItem('jarvis_convs') || '[]'); } catch { return []; }
+    }
 
-    ipcRenderer.on('success', (_, msg) => {
-      addLine(msg, 'success');
-    });
+    function saveConversation(firstMsg) {
+      if (state.currentConvId) return; // already saved this session
+      const convs = getConversations();
+      const id = Date.now();
+      state.currentConvId = id;
+      convs.unshift({ id, preview: firstMsg.substring(0, 60), time: new Date().toLocaleString() });
+      if (convs.length > 30) convs.pop();
+      localStorage.setItem('jarvis_convs', JSON.stringify(convs));
+      renderChatList();
+    }
 
-    ipcRenderer.on('clear', () => {
-      // Keep banner lines
-      const lines = output.querySelectorAll('.line:not(.banner):not(.separator)');
-      lines.forEach(l => l.remove());
-      addLine('Conversation cleared.', 'info');
-    });
-
-    ipcRenderer.on('voice-toggle', (_, isOn) => {
-      voiceMode = isOn;
-      voiceIndicator.textContent = `🎙 Voice: ${isOn ? 'ON' : 'OFF'}`;
-      voiceIndicator.className = isOn ? 'active' : '';
-    });
-
-    ipcRenderer.on('memories', (_, memories) => {
-      addLine('─── Memories ───────────────────────────────────', 'separator');
-      if (!memories || memories.length === 0) {
-        addLine('No memories stored yet.', 'info');
-      } else {
-        memories.forEach(m => {
-          addLine(`[${m.id}] (${m.type}) ${m.content.substring(0, 80)}`, 'info');
+    function renderChatList() {
+      const convs = getConversations();
+      chatList.innerHTML = '';
+      convs.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'chat-item' + (c.id === state.currentConvId ? ' active' : '');
+        item.innerHTML = `
+          <div class="chat-preview">${c.preview}</div>
+          <div class="chat-time">${c.time}</div>
+          <span class="del-chat" data-id="${c.id}">✕</span>
+        `;
+        item.querySelector('.del-chat').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const convs2 = getConversations().filter(x => x.id !== c.id);
+          localStorage.setItem('jarvis_convs', JSON.stringify(convs2));
+          renderChatList();
         });
+        chatList.appendChild(item);
+      });
+    }
+
+    // ── Panels ─────────────────────────────────────────────────────────────────
+    function openPanel(mode) {
+      state.panelMode = mode;
+      overlay.classList.add('visible');
+      settingsPanel.classList.add('open');
+      if (mode === 'settings') renderSettingsPanel();
+      else if (mode === 'memory') renderMemoryPanel();
+    }
+
+    function closePanel() {
+      settingsPanel.classList.remove('open');
+      overlay.classList.remove('visible');
+      state.panelMode = null;
+    }
+
+    document.getElementById('settings-btn').addEventListener('click', () => openPanel('settings'));
+    document.getElementById('memory-btn').addEventListener('click', () => openPanel('memory'));
+    document.getElementById('panel-close').addEventListener('click', closePanel);
+    overlay.addEventListener('click', closePanel);
+
+    // ── Settings panel ─────────────────────────────────────────────────────────
+    async function renderSettingsPanel() {
+      panelTitle.textContent = 'Settings';
+      const s = await window.jarvis.getSettings();
+      state.settings = s;
+      panelBody.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Anthropic API Key</label>
+          <input class="form-input" id="s-apikey" type="password" placeholder="sk-ant-..." value="${s.apiKey || ''}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="s-username" type="text" value="${s.userName || 'User'}">
+        </div>
+        <div class="form-group">
+          <div class="toggle-row">
+            <label class="form-label" style="margin:0">Text-to-Speech</label>
+            <button class="toggle ${s.ttsEnabled ? 'on' : ''}" id="s-tts"></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">JARVIS Personality</label>
+          <textarea class="form-input" id="s-prompt">${s.systemPrompt || ''}</textarea>
+        </div>
+        <button class="save-btn" id="s-save">Save Settings</button>
+      `;
+
+      document.getElementById('s-tts').addEventListener('click', function() {
+        this.classList.toggle('on');
+      });
+
+      document.getElementById('s-save').addEventListener('click', async () => {
+        const newSettings = {
+          ...s,
+          userName: document.getElementById('s-username').value,
+          ttsEnabled: document.getElementById('s-tts').classList.contains('on'),
+          systemPrompt: document.getElementById('s-prompt').value,
+        };
+        const apiKey = document.getElementById('s-apikey').value.trim();
+        if (apiKey) newSettings.apiKey = apiKey;
+        await window.jarvis.saveSettings(newSettings);
+        state.settings = newSettings;
+        showToast('Settings saved ✓');
+        closePanel();
+      });
+    }
+
+    // ── Memory panel ───────────────────────────────────────────────────────────
+    async function renderMemoryPanel() {
+      panelTitle.textContent = 'Memory';
+      panelBody.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:10px 0">Loading…</div>';
+      const memories = await window.jarvis.getAllMemories();
+      if (!memories || memories.length === 0) {
+        panelBody.innerHTML = `
+          <div style="text-align:center;padding:40px 0;color:var(--text3)">
+            <div style="font-size:32px;margin-bottom:12px">🧠</div>
+            <div style="font-size:13px">No memories yet.<br>Ask JARVIS to remember something.</div>
+          </div>`;
+        return;
       }
-      addLine('────────────────────────────────────────────────', 'separator');
-    });
+      panelBody.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:16px">${memories.length} memories stored</div>`;
+      memories.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'memory-item';
+        item.innerHTML = `
+          <div>
+            <span class="mem-type">${m.type || 'general'}</span>
+          </div>
+          <div class="mem-content">${m.content.substring(0, 120)}${m.content.length > 120 ? '…' : ''}</div>
+          <button class="mem-del" data-id="${m.id}">✕</button>
+        `;
+        item.querySelector('.mem-del').addEventListener('click', async function() {
+          await window.jarvis.deleteMemory(parseInt(this.dataset.id));
+          item.remove();
+        });
+        panelBody.appendChild(item);
+      });
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    async function init() {
+      renderChatList();
+      try {
+        state.settings = await window.jarvis.getSettings();
+      } catch (e) {
+        // no settings yet
+      }
+      setOrbState('idle');
+    }
+
+    init();
+
+  })();
   </script>
 </body>
 </html>
