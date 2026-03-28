@@ -1,9 +1,12 @@
 appId: com.jarvis.ai
 productName: JARVIS
+extraMetadata:
+  main: src/electron-main.js
 directories:
   output: dist
 files:
   - src/**
+  - ui/**
   - data/**
   - assets/**
   - node_modules/**
