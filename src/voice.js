@@ -13,6 +13,14 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// JARVIS voice: Daniel (British English male) on Mac, ZIRA on Windows, espeak on Linux
+const JARVIS_VOICE = process.platform === 'darwin' ? 'Daniel'
+  : process.platform === 'win32' ? 'Microsoft Zira Desktop'
+  : null; // Linux: system default
+
+let _isSpeaking = false;
+let _currentSpeech = null;
+
 /**
  * Speak text using native TTS (non-blocking)
  * @param {string} text
@@ -40,7 +48,7 @@ function speak(text) {
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .trim();
 
-    _currentSpeech = say.speak(cleanText, null, 1.0, (err) => {
+    _currentSpeech = say.speak(cleanText, JARVIS_VOICE, 0.9, (err) => {
       _isSpeaking = false;
       _currentSpeech = null;
       if (err && err.message !== 'stopped') {
