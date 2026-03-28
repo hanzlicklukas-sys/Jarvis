@@ -95,6 +95,7 @@ async function listen(durationMs = 5000) {
       channels: 1,
       audioType: 'wav',
       recorder: process.platform === 'win32' ? 'sox' : 'rec',
+      recorderPath: process.platform === 'win32' ? undefined : '/usr/local/bin/rec',
       silence: '1.0',
       threshold: 0.5
     });
