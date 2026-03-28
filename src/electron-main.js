@@ -41,6 +41,10 @@ function saveSettings(settings) {
 
 async function initBackend() {
   try {
+    // Use OS user data dir for DB so it's writable (not inside read-only .asar)
+    process.env.JARVIS_DATA_DIR = app.getPath('userData');
+    fs.mkdirSync(process.env.JARVIS_DATA_DIR, { recursive: true });
+
     memory = require('./memory');
     brain = require('./brain');
     voice = require('./voice');
