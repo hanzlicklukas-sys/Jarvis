@@ -177,101 +177,214 @@
       overflow: hidden;
     }
 
-    /* ── ORB ── */
+    /* ── ARC REACTOR / JARVIS HUD ── */
     #orb-container {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 300px;
-      height: 300px;
+      width: 340px;
+      height: 340px;
       flex-shrink: 0;
+      cursor: pointer;
     }
 
-    /* Halo rings */
-    .halo {
+    /* Hex grid background */
+    #orb-container::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background-image:
+        repeating-linear-gradient(60deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%),
+        repeating-linear-gradient(120deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%),
+        repeating-linear-gradient(0deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%);
+      background-size: 30px 52px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    #orb-container:hover::before { opacity: 1; }
+
+    /* Outer pulse ring */
+    .arc-pulse {
       position: absolute;
       border-radius: 50%;
-      border: 1px solid var(--cyan);
-      opacity: 0.12;
+      border: 1px solid rgba(0,212,255,0.15);
+      pointer-events: none;
+      animation: arc-pulse-out 3s ease-out infinite;
+    }
+    .arc-pulse:nth-child(1) { width: 320px; height: 320px; animation-delay: 0s; }
+    .arc-pulse:nth-child(2) { width: 320px; height: 320px; animation-delay: 1s; }
+    .arc-pulse:nth-child(3) { width: 320px; height: 320px; animation-delay: 2s; }
+    @keyframes arc-pulse-out {
+      0%   { transform: scale(0.85); opacity: 0.6; }
+      100% { transform: scale(1.3);  opacity: 0; }
+    }
+
+    /* Ring 3 — outermost rotating dashes */
+    .arc-ring-3 {
+      position: absolute;
+      width: 290px;
+      height: 290px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(0,212,255,0.2);
+      animation: ring-cw 20s linear infinite;
       pointer-events: none;
     }
-    .halo-1 { width: 240px; height: 240px; animation: halo-rotate 8s linear infinite; }
-    .halo-2 { width: 270px; height: 270px; animation: halo-rotate 12s linear infinite reverse; opacity: 0.07; }
-    .halo-3 { width: 300px; height: 300px; animation: halo-rotate 18s linear infinite; opacity: 0.04; }
 
-    @keyframes halo-rotate {
-      from { transform: rotate(0deg) scale(1); }
-      to { transform: rotate(360deg) scale(1); }
+    /* Ring 2 — tick marks ring */
+    .arc-ring-2 {
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,212,255,0.08);
+      animation: ring-ccw 10s linear infinite;
+      pointer-events: none;
+    }
+    .arc-ring-2::before, .arc-ring-2::after {
+      content: '';
+      position: absolute;
+      background: var(--cyan);
+      opacity: 0.6;
+    }
+    /* tick top */
+    .arc-ring-2::before { width: 2px; height: 12px; top: -6px; left: 50%; transform: translateX(-50%); }
+    /* tick right */
+    .arc-ring-2::after  { width: 12px; height: 2px; right: -6px; top: 50%; transform: translateY(-50%); }
+
+    /* Ring 1 — fast inner arc segments */
+    .arc-ring-1 {
+      position: absolute;
+      width: 195px;
+      height: 195px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--cyan);
+      border-right-color: rgba(0,212,255,0.4);
+      animation: ring-cw 3s linear infinite;
+      pointer-events: none;
+      filter: drop-shadow(0 0 4px var(--cyan));
     }
 
-    /* The orb itself */
-    #orb {
-      width: 180px;
-      height: 180px;
+    /* Inner accent ring */
+    .arc-ring-inner {
+      position: absolute;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, #00d4ff 0%, #0044cc 45%, #000033 100%);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-bottom-color: rgba(0,212,255,0.5);
+      animation: ring-ccw 6s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes ring-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+    @keyframes ring-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
+
+    /* The core */
+    #orb {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 38% 32%,
+          rgba(255,255,255,0.9) 0%,
+          rgba(0,212,255,1) 18%,
+          rgba(0,100,220,0.9) 45%,
+          rgba(0,20,80,1) 75%,
+          rgba(0,5,20,1) 100%
+        );
       box-shadow:
-        0 0 40px rgba(0,212,255,0.25),
-        0 0 80px rgba(0,100,255,0.15),
-        inset 0 0 40px rgba(0,0,0,0.5);
-      cursor: pointer;
+        0 0 0 2px rgba(0,212,255,0.3),
+        0 0 20px rgba(0,212,255,0.5),
+        0 0 60px rgba(0,150,255,0.3),
+        0 0 100px rgba(0,100,255,0.15),
+        inset 0 0 20px rgba(0,0,0,0.4);
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: box-shadow 0.4s ease;
-      animation: orb-idle 3s ease-in-out infinite;
-      position: relative;
-      z-index: 2;
       user-select: none;
+      transition: box-shadow 0.4s;
+    }
+
+    /* Core inner triangle segments (arc reactor look) */
+    #orb::before {
+      content: '';
+      position: absolute;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: rgba(0,212,255,0.12);
+      border: 1.5px solid rgba(0,212,255,0.5);
+      box-shadow: 0 0 12px rgba(0,212,255,0.6), inset 0 0 12px rgba(0,212,255,0.3);
+    }
+    #orb::after {
+      content: '';
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 0%, #00d4ff 50%, #0066ff 100%);
+      box-shadow: 0 0 16px #00d4ff, 0 0 32px rgba(0,212,255,0.8);
     }
 
     #orb-icon {
-      font-size: 44px;
-      filter: drop-shadow(0 0 8px rgba(0,212,255,0.8));
-      pointer-events: none;
-      transition: all 0.3s;
+      position: absolute;
+      font-size: 0;
+      opacity: 0;
     }
 
-    /* Orb states */
-    #orb.idle { animation: orb-idle 3s ease-in-out infinite; }
-    @keyframes orb-idle {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(0,212,255,0.25), 0 0 80px rgba(0,100,255,0.15), inset 0 0 40px rgba(0,0,0,0.5); }
-      50% { transform: scale(1.04); box-shadow: 0 0 55px rgba(0,212,255,0.35), 0 0 100px rgba(0,100,255,0.2), inset 0 0 40px rgba(0,0,0,0.5); }
+    /* State: idle — gentle breathe */
+    #orb-container.idle #orb {
+      animation: core-breathe 4s ease-in-out infinite;
+    }
+    @keyframes core-breathe {
+      0%,100% { box-shadow: 0 0 0 2px rgba(0,212,255,0.3), 0 0 20px rgba(0,212,255,0.5), 0 0 60px rgba(0,150,255,0.3), inset 0 0 20px rgba(0,0,0,0.4); }
+      50%      { box-shadow: 0 0 0 3px rgba(0,212,255,0.5), 0 0 35px rgba(0,212,255,0.8), 0 0 90px rgba(0,150,255,0.5), inset 0 0 20px rgba(0,0,0,0.4); }
     }
 
-    #orb.listening {
-      animation: orb-listen 0.8s ease-in-out infinite;
-      background: radial-gradient(circle at 40% 35%, #ffffff 0%, #00d4ff 30%, #0066ff 70%, #000033 100%);
+    /* State: listening — fast bright pulse */
+    #orb-container.listening #orb {
+      animation: core-listen 0.6s ease-in-out infinite;
+      background: radial-gradient(circle at 38% 32%, #fff 0%, #00ffff 20%, #0088ff 50%, #001040 100%);
     }
-    @keyframes orb-listen {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0,212,255,0.6), 0 0 120px rgba(0,212,255,0.3); }
-      50% { transform: scale(1.08); box-shadow: 0 0 80px rgba(0,212,255,0.9), 0 0 160px rgba(0,212,255,0.5); }
-    }
-
-    #orb.thinking {
-      animation: orb-think 1.5s ease-in-out infinite;
-      background: radial-gradient(circle at 40% 35%, #aa88ff 0%, #6600cc 45%, #000033 100%);
-    }
-    @keyframes orb-think {
-      0% { filter: hue-rotate(0deg); transform: scale(1); }
-      50% { filter: hue-rotate(60deg); transform: scale(1.02); }
-      100% { filter: hue-rotate(0deg); transform: scale(1); }
+    #orb-container.listening .arc-ring-1 { animation-duration: 0.8s; border-top-color: #00ffff; filter: drop-shadow(0 0 8px #00ffff); }
+    #orb-container.listening .arc-pulse { animation-duration: 1s; border-color: rgba(0,255,255,0.4); }
+    @keyframes core-listen {
+      0%,100% { box-shadow: 0 0 0 3px rgba(0,212,255,0.6), 0 0 40px rgba(0,212,255,0.9), 0 0 100px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,0,0,0.3); }
+      50%      { box-shadow: 0 0 0 6px rgba(0,212,255,0.4), 0 0 70px rgba(0,212,255,1),   0 0 160px rgba(0,212,255,0.7), inset 0 0 20px rgba(0,0,0,0.3); transform: scale(1.05); }
     }
 
-    #orb.speaking {
-      animation: orb-speak 0.6s ease-in-out infinite;
-      background: radial-gradient(circle at 40% 35%, #88ffcc 0%, #00cc88 40%, #003322 100%);
+    /* State: thinking — purple hue rotation */
+    #orb-container.thinking #orb {
+      animation: core-think 2s linear infinite;
+      background: radial-gradient(circle at 38% 32%, #fff 0%, #aa88ff 20%, #5500cc 50%, #0a0020 100%);
     }
-    @keyframes orb-speak {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 50px rgba(0,255,136,0.4), 0 0 100px rgba(0,255,136,0.2); }
-      25% { transform: scale(1.06); }
-      75% { transform: scale(0.97); }
+    #orb-container.thinking .arc-ring-1 { animation-duration: 1s; border-top-color: #aa88ff; border-right-color: rgba(170,136,255,0.4); filter: drop-shadow(0 0 6px #aa88ff); }
+    #orb-container.thinking .arc-ring-2 { animation-duration: 3s; }
+    @keyframes core-think {
+      0%   { filter: hue-rotate(0deg)   brightness(1); }
+      50%  { filter: hue-rotate(40deg)  brightness(1.2); }
+      100% { filter: hue-rotate(0deg)   brightness(1); }
     }
 
-    /* Pulse rings for listening */
-    #orb.listening ~ .halo { animation-duration: 1.5s; opacity: 0.3; }
-    #orb.thinking ~ .halo { animation-duration: 2s; }
+    /* State: speaking — green energy wave */
+    #orb-container.speaking #orb {
+      animation: core-speak 0.4s ease-in-out infinite;
+      background: radial-gradient(circle at 38% 32%, #fff 0%, #88ffcc 20%, #00aa66 50%, #001a10 100%);
+    }
+    #orb-container.speaking .arc-ring-1 { border-top-color: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
+    #orb-container.speaking .arc-pulse { border-color: rgba(0,255,136,0.3); }
+    @keyframes core-speak {
+      0%,100% { transform: scale(1);    box-shadow: 0 0 0 2px rgba(0,255,136,0.4), 0 0 30px rgba(0,255,136,0.6), 0 0 80px rgba(0,255,136,0.3), inset 0 0 20px rgba(0,0,0,0.4); }
+      25%      { transform: scale(1.06); }
+      75%      { transform: scale(0.96); }
+    }
 
     /* ── USER TEXT (above orb) ── */
     #user-text {
@@ -607,14 +720,16 @@
       <!-- User text above orb -->
       <div id="user-text"></div>
 
-      <!-- ORB -->
-      <div id="orb-container">
-        <div id="orb" class="idle" title="Click to speak">
-          <span id="orb-icon">🎙</span>
-        </div>
-        <div class="halo halo-1"></div>
-        <div class="halo halo-2"></div>
-        <div class="halo halo-3"></div>
+      <!-- ARC REACTOR ORB -->
+      <div id="orb-container" class="idle" title="Click to speak">
+        <div class="arc-pulse"></div>
+        <div class="arc-pulse"></div>
+        <div class="arc-pulse"></div>
+        <div class="arc-ring-3"></div>
+        <div class="arc-ring-2"></div>
+        <div class="arc-ring-1"></div>
+        <div class="arc-ring-inner"></div>
+        <div id="orb"><span id="orb-icon"></span></div>
       </div>
 
       <!-- Tool badges -->
@@ -670,7 +785,7 @@
     };
 
     // ── Elements ───────────────────────────────────────────────────────────────
-    const orb = document.getElementById('orb');
+    const orb = document.getElementById('orb-container');
     const orbIcon = document.getElementById('orb-icon');
     const userText = document.getElementById('user-text');
     const responseText = document.getElementById('response-text');
@@ -690,11 +805,9 @@
     function setOrbState(s) {
       state.orbState = s;
       orb.className = s;
-      const icons = { idle: '🎙', listening: '🎤', thinking: '⚡', speaking: '🔊' };
-      orbIcon.textContent = icons[s] || '🎙';
       statusText.className = s;
       const labels = {
-        idle: 'Click the orb to speak, or type below',
+        idle: 'Click to speak with JARVIS',
         listening: 'Listening… speak now',
         thinking: 'JARVIS is thinking…',
         speaking: 'JARVIS is speaking…'
