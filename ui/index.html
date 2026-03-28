@@ -4,124 +4,114 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JARVIS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --bg: #060608;
-      --bg2: #0d0d12;
-      --bg3: #13131a;
-      --panel: rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.07);
+      --sidebar-bg: #0c0c10;
+      --panel: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
       --cyan: #00d4ff;
-      --cyan-dim: rgba(0,212,255,0.5);
-      --blue: #0066ff;
+      --blue: #0055ff;
       --text: #f0f0f0;
       --text2: #888;
       --text3: #444;
       --green: #00ff88;
-      --red: #ff4444;
-      --tool-bg: rgba(0,212,255,0.08);
-      --tool-border: rgba(0,212,255,0.3);
+      --red: #ff4455;
+      --tool: rgba(0,212,255,0.12);
     }
-
+    html, body { height: 100%; overflow: hidden; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
-      height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
 
-    /* ── TOP BAR ── */
-    #topbar {
+    /* ── TITLEBAR ── */
+    #titlebar {
       -webkit-app-region: drag;
-      height: 44px;
+      height: 38px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      justify-content: space-between;
       padding: 0 16px 0 80px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg2);
       flex-shrink: 0;
+      justify-content: space-between;
     }
-    #topbar .logo {
+    #titlebar .title {
       font-size: 12px;
-      font-weight: 600;
       letter-spacing: 4px;
       color: var(--cyan);
       text-transform: uppercase;
-      -webkit-app-region: no-drag;
+      font-weight: 500;
     }
-    #topbar .actions {
+    #titlebar .controls {
+      -webkit-app-region: no-drag;
       display: flex;
       gap: 8px;
-      -webkit-app-region: no-drag;
-    }
-    .icon-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text2);
-      cursor: pointer;
-      display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 15px;
+    }
+    #titlebar .controls button {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
       transition: all 0.2s;
     }
-    .icon-btn:hover { background: rgba(255,255,255,0.07); color: var(--text); border-color: rgba(255,255,255,0.15); }
+    #titlebar .controls button:hover { border-color: var(--cyan); color: var(--cyan); }
 
-    /* ── BODY LAYOUT ── */
-    #body {
-      flex: 1;
+    /* ── MAIN LAYOUT ── */
+    #layout {
       display: flex;
+      flex: 1;
       overflow: hidden;
     }
 
-    /* ── LEFT SIDEBAR ── */
+    /* ── SIDEBAR ── */
     #sidebar {
       width: 260px;
+      background: var(--sidebar-bg);
       border-right: 1px solid var(--border);
-      background: var(--bg2);
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease, width 0.3s ease;
       flex-shrink: 0;
-    }
-    #sidebar.collapsed {
-      width: 0;
+      transition: width 0.3s ease;
       overflow: hidden;
     }
+    #sidebar.collapsed { width: 0; }
+
     #sidebar-header {
       padding: 16px;
       border-bottom: 1px solid var(--border);
-    }
-    #new-chat-btn {
-      width: 100%;
-      padding: 9px 14px;
-      border-radius: 8px;
-      border: 1px solid var(--cyan-dim);
-      background: transparent;
-      color: var(--cyan);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-align: left;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+    }
+    #sidebar-header span { font-size: 11px; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; }
+
+    #new-chat-btn {
+      width: calc(100% - 32px);
+      margin: 12px 16px;
+      padding: 9px;
+      background: none;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 1px;
     }
     #new-chat-btn:hover { background: rgba(0,212,255,0.08); }
-
-    #sidebar-section { padding: 12px 16px 8px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; color: var(--text3); text-transform: uppercase; }
 
     #chat-list {
       flex: 1;
@@ -132,367 +122,323 @@
     #chat-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .chat-item {
-      padding: 9px 10px;
-      border-radius: 8px;
+      padding: 10px 10px;
+      border-radius: 6px;
       cursor: pointer;
+      margin-bottom: 2px;
       transition: background 0.15s;
-      position: relative;
+      border: 1px solid transparent;
     }
     .chat-item:hover { background: var(--panel); }
-    .chat-item.active { background: rgba(0,212,255,0.08); }
-    .chat-item .chat-preview { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .chat-item .chat-time { font-size: 10px; color: var(--text3); margin-top: 2px; }
-    .chat-item .del-chat { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); opacity: 0; font-size: 12px; color: var(--text3); cursor: pointer; }
-    .chat-item:hover .del-chat { opacity: 1; }
+    .chat-item.active { background: var(--panel); border-color: rgba(0,212,255,0.2); }
+    .chat-item .chat-preview {
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chat-item .chat-time {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 3px;
+    }
 
     #sidebar-footer {
-      padding: 12px 8px;
+      padding: 12px 16px;
       border-top: 1px solid var(--border);
     }
-    .sidebar-footer-btn {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      color: var(--text2);
-      font-family: 'Inter', sans-serif;
-      font-size: 12px;
-      cursor: pointer;
+    #tts-toggle {
       display: flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      padding: 6px 0;
     }
-    .sidebar-footer-btn:hover { background: var(--panel); color: var(--text); }
+    .toggle-switch {
+      width: 32px; height: 18px;
+      background: var(--border);
+      border-radius: 9px;
+      position: relative;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--cyan); }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: left 0.2s;
+    }
+    .toggle-switch.on::after { left: 17px; }
 
     /* ── MAIN AREA ── */
     #main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
       overflow: hidden;
-    }
-
-    /* ── ARC REACTOR / JARVIS HUD ── */
-    #orb-container {
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 340px;
-      height: 340px;
+    }
+
+    /* ── CHAT MESSAGES (old chat view) ── */
+    #chat-view {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: none;
+      flex-direction: column;
+      gap: 20px;
+    }
+    #chat-view::-webkit-scrollbar { width: 4px; }
+    #chat-view::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    #chat-view.visible { display: flex; }
+
+    .msg { display: flex; gap: 12px; max-width: 800px; }
+    .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+    .msg-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
       flex-shrink: 0;
-      cursor: pointer;
     }
+    .msg.jarvis .msg-avatar { background: rgba(0,212,255,0.15); border: 1px solid rgba(0,212,255,0.3); color: var(--cyan); }
+    .msg.user .msg-avatar { background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: var(--text2); }
+    .msg-bubble {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 600px;
+    }
+    .msg.jarvis .msg-bubble { background: var(--panel); border: 1px solid var(--border); border-top-left-radius: 2px; }
+    .msg.user .msg-bubble { background: rgba(0,85,255,0.15); border: 1px solid rgba(0,85,255,0.3); border-top-right-radius: 2px; }
+    .msg-bubble strong { color: var(--cyan); font-weight: 600; }
+    .msg-bubble code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; }
+    .msg-bubble pre { background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap; }
+    .msg-time { font-size: 10px; color: var(--text3); margin-top: 4px; padding: 0 4px; }
 
-    /* Hex grid background */
-    #orb-container::before {
-      content: '';
-      position: absolute;
-      width: 500px;
-      height: 500px;
-      background-image:
-        repeating-linear-gradient(60deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%),
-        repeating-linear-gradient(120deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%),
-        repeating-linear-gradient(0deg, rgba(0,212,255,0.03) 0, rgba(0,212,255,0.03) 1px, transparent 0, transparent 50%);
-      background-size: 30px 52px;
-      border-radius: 50%;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.5s;
-    }
-    #orb-container:hover::before { opacity: 1; }
-
-    /* Outer pulse ring */
-    .arc-pulse {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(0,212,255,0.15);
-      pointer-events: none;
-      animation: arc-pulse-out 3s ease-out infinite;
-    }
-    .arc-pulse:nth-child(1) { width: 320px; height: 320px; animation-delay: 0s; }
-    .arc-pulse:nth-child(2) { width: 320px; height: 320px; animation-delay: 1s; }
-    .arc-pulse:nth-child(3) { width: 320px; height: 320px; animation-delay: 2s; }
-    @keyframes arc-pulse-out {
-      0%   { transform: scale(0.85); opacity: 0.6; }
-      100% { transform: scale(1.3);  opacity: 0; }
-    }
-
-    /* Ring 3 — outermost rotating dashes */
-    .arc-ring-3 {
-      position: absolute;
-      width: 290px;
-      height: 290px;
-      border-radius: 50%;
-      border: 1.5px dashed rgba(0,212,255,0.2);
-      animation: ring-cw 20s linear infinite;
-      pointer-events: none;
-    }
-
-    /* Ring 2 — tick marks ring */
-    .arc-ring-2 {
-      position: absolute;
-      width: 240px;
-      height: 240px;
-      border-radius: 50%;
-      border: 1px solid rgba(0,212,255,0.08);
-      animation: ring-ccw 10s linear infinite;
-      pointer-events: none;
-    }
-    .arc-ring-2::before, .arc-ring-2::after {
-      content: '';
-      position: absolute;
-      background: var(--cyan);
-      opacity: 0.6;
-    }
-    /* tick top */
-    .arc-ring-2::before { width: 2px; height: 12px; top: -6px; left: 50%; transform: translateX(-50%); }
-    /* tick right */
-    .arc-ring-2::after  { width: 12px; height: 2px; right: -6px; top: 50%; transform: translateY(-50%); }
-
-    /* Ring 1 — fast inner arc segments */
-    .arc-ring-1 {
-      position: absolute;
-      width: 195px;
-      height: 195px;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: var(--cyan);
-      border-right-color: rgba(0,212,255,0.4);
-      animation: ring-cw 3s linear infinite;
-      pointer-events: none;
-      filter: drop-shadow(0 0 4px var(--cyan));
-    }
-
-    /* Inner accent ring */
-    .arc-ring-inner {
-      position: absolute;
-      width: 160px;
-      height: 160px;
-      border-radius: 50%;
-      border: 1px solid rgba(0,212,255,0.15);
-      border-bottom-color: rgba(0,212,255,0.5);
-      animation: ring-ccw 6s linear infinite;
-      pointer-events: none;
-    }
-
-    @keyframes ring-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
-    @keyframes ring-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
-
-    /* The core */
-    #orb {
-      position: absolute;
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 38% 32%,
-          rgba(255,255,255,0.9) 0%,
-          rgba(0,212,255,1) 18%,
-          rgba(0,100,220,0.9) 45%,
-          rgba(0,20,80,1) 75%,
-          rgba(0,5,20,1) 100%
-        );
-      box-shadow:
-        0 0 0 2px rgba(0,212,255,0.3),
-        0 0 20px rgba(0,212,255,0.5),
-        0 0 60px rgba(0,150,255,0.3),
-        0 0 100px rgba(0,100,255,0.15),
-        inset 0 0 20px rgba(0,0,0,0.4);
-      z-index: 10;
+    /* ── ORB VIEW (main/active view) ── */
+    #orb-view {
+      flex: 1;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      user-select: none;
-      transition: box-shadow 0.4s;
+      gap: 0;
+      padding: 20px;
+      position: relative;
     }
 
-    /* Core inner triangle segments (arc reactor look) */
-    #orb::before {
-      content: '';
-      position: absolute;
-      width: 55px;
-      height: 55px;
-      border-radius: 50%;
-      background: rgba(0,212,255,0.12);
-      border: 1.5px solid rgba(0,212,255,0.5);
-      box-shadow: 0 0 12px rgba(0,212,255,0.6), inset 0 0 12px rgba(0,212,255,0.3);
-    }
-    #orb::after {
-      content: '';
-      position: absolute;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #ffffff 0%, #00d4ff 50%, #0066ff 100%);
-      box-shadow: 0 0 16px #00d4ff, 0 0 32px rgba(0,212,255,0.8);
-    }
-
-    #orb-icon {
-      position: absolute;
-      font-size: 0;
-      opacity: 0;
-    }
-
-    /* State: idle — gentle breathe */
-    #orb-container.idle #orb {
-      animation: core-breathe 4s ease-in-out infinite;
-    }
-    @keyframes core-breathe {
-      0%,100% { box-shadow: 0 0 0 2px rgba(0,212,255,0.3), 0 0 20px rgba(0,212,255,0.5), 0 0 60px rgba(0,150,255,0.3), inset 0 0 20px rgba(0,0,0,0.4); }
-      50%      { box-shadow: 0 0 0 3px rgba(0,212,255,0.5), 0 0 35px rgba(0,212,255,0.8), 0 0 90px rgba(0,150,255,0.5), inset 0 0 20px rgba(0,0,0,0.4); }
-    }
-
-    /* State: listening — fast bright pulse */
-    #orb-container.listening #orb {
-      animation: core-listen 0.6s ease-in-out infinite;
-      background: radial-gradient(circle at 38% 32%, #fff 0%, #00ffff 20%, #0088ff 50%, #001040 100%);
-    }
-    #orb-container.listening .arc-ring-1 { animation-duration: 0.8s; border-top-color: #00ffff; filter: drop-shadow(0 0 8px #00ffff); }
-    #orb-container.listening .arc-pulse { animation-duration: 1s; border-color: rgba(0,255,255,0.4); }
-    @keyframes core-listen {
-      0%,100% { box-shadow: 0 0 0 3px rgba(0,212,255,0.6), 0 0 40px rgba(0,212,255,0.9), 0 0 100px rgba(0,212,255,0.5), inset 0 0 20px rgba(0,0,0,0.3); }
-      50%      { box-shadow: 0 0 0 6px rgba(0,212,255,0.4), 0 0 70px rgba(0,212,255,1),   0 0 160px rgba(0,212,255,0.7), inset 0 0 20px rgba(0,0,0,0.3); transform: scale(1.05); }
-    }
-
-    /* State: thinking — purple hue rotation */
-    #orb-container.thinking #orb {
-      animation: core-think 2s linear infinite;
-      background: radial-gradient(circle at 38% 32%, #fff 0%, #aa88ff 20%, #5500cc 50%, #0a0020 100%);
-    }
-    #orb-container.thinking .arc-ring-1 { animation-duration: 1s; border-top-color: #aa88ff; border-right-color: rgba(170,136,255,0.4); filter: drop-shadow(0 0 6px #aa88ff); }
-    #orb-container.thinking .arc-ring-2 { animation-duration: 3s; }
-    @keyframes core-think {
-      0%   { filter: hue-rotate(0deg)   brightness(1); }
-      50%  { filter: hue-rotate(40deg)  brightness(1.2); }
-      100% { filter: hue-rotate(0deg)   brightness(1); }
-    }
-
-    /* State: speaking — green energy wave */
-    #orb-container.speaking #orb {
-      animation: core-speak 0.4s ease-in-out infinite;
-      background: radial-gradient(circle at 38% 32%, #fff 0%, #88ffcc 20%, #00aa66 50%, #001a10 100%);
-    }
-    #orb-container.speaking .arc-ring-1 { border-top-color: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
-    #orb-container.speaking .arc-pulse { border-color: rgba(0,255,136,0.3); }
-    @keyframes core-speak {
-      0%,100% { transform: scale(1);    box-shadow: 0 0 0 2px rgba(0,255,136,0.4), 0 0 30px rgba(0,255,136,0.6), 0 0 80px rgba(0,255,136,0.3), inset 0 0 20px rgba(0,0,0,0.4); }
-      25%      { transform: scale(1.06); }
-      75%      { transform: scale(0.96); }
-    }
-
-    /* ── USER TEXT (above orb) ── */
+    /* User message above orb */
     #user-text {
-      text-align: center;
       font-size: 14px;
       color: var(--text2);
-      max-width: 500px;
-      min-height: 24px;
-      margin-bottom: 12px;
+      margin-bottom: 28px;
       opacity: 0;
-      transition: opacity 0.3s;
-      font-style: italic;
+      transition: opacity 0.4s;
+      text-align: center;
+      max-width: 500px;
+      min-height: 20px;
     }
     #user-text.visible { opacity: 1; }
 
-    /* ── RESPONSE TEXT (below orb) ── */
-    #response-area {
-      max-width: 600px;
-      width: 100%;
-      padding: 0 24px;
-      text-align: center;
-      min-height: 80px;
-      max-height: 220px;
-      overflow-y: auto;
-      margin-top: 16px;
-    }
-    #response-area::-webkit-scrollbar { width: 3px; }
-    #response-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-    #response-text {
-      font-size: 16px;
-      line-height: 1.7;
-      color: var(--text);
-      font-weight: 300;
-    }
-    #response-text .code-inline {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      background: rgba(255,255,255,0.08);
-      padding: 2px 6px;
-      border-radius: 4px;
-    }
-    #response-text pre {
-      text-align: left;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      overflow-x: auto;
-      margin: 8px 0;
-      white-space: pre-wrap;
+    /* ── ARC REACTOR ── */
+    #orb-wrap {
+      position: relative;
+      width: 280px; height: 280px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
-    /* ── TOOL BADGES ── */
-    #tool-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 12px;
-      min-height: 28px;
-    }
-    .tool-badge {
-      padding: 5px 12px;
-      border-radius: 20px;
-      background: var(--tool-bg);
-      border: 1px solid var(--tool-border);
-      font-size: 11px;
-      color: var(--cyan);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      animation: badge-in 0.2s ease;
-    }
-    @keyframes badge-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-    .tool-badge .spinner {
-      width: 10px;
-      height: 10px;
-      border: 1.5px solid var(--cyan-dim);
-      border-top-color: var(--cyan);
+    .arc-pulse {
+      position: absolute;
+      width: 280px; height: 280px;
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      border: 1px solid rgba(0,212,255,0.2);
+      animation: pulse-out 3s ease-out infinite;
+      pointer-events: none;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .arc-pulse:nth-child(2) { animation-delay: 1s; }
+    .arc-pulse:nth-child(3) { animation-delay: 2s; }
+    @keyframes pulse-out {
+      0%   { transform: scale(0.7); opacity: 0.7; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
 
-    /* ── STATUS TEXT ── */
-    #status-text {
+    .arc-ring { position: absolute; border-radius: 50%; pointer-events: none; }
+    .arc-ring-outer {
+      width: 248px; height: 248px;
+      border: 1px dashed rgba(0,212,255,0.18);
+      animation: spin-cw 25s linear infinite;
+    }
+    .arc-ring-mid {
+      width: 210px; height: 210px;
+      border: 1.5px solid rgba(0,212,255,0.08);
+      border-top-color: rgba(0,212,255,0.5);
+      border-right-color: rgba(0,212,255,0.3);
+      animation: spin-cw 4s linear infinite;
+      filter: drop-shadow(0 0 3px rgba(0,212,255,0.4));
+    }
+    .arc-ring-inner {
+      width: 175px; height: 175px;
+      border: 1px solid rgba(0,212,255,0.12);
+      border-bottom-color: rgba(0,212,255,0.4);
+      animation: spin-ccw 8s linear infinite;
+    }
+    .arc-ring-tick {
+      width: 175px; height: 175px;
+      border: none;
+      position: absolute;
+    }
+    .arc-ring-tick::before, .arc-ring-tick::after {
+      content: ''; position: absolute; background: var(--cyan); opacity: 0.5;
+    }
+    .arc-ring-tick::before { width: 2px; height: 10px; top: -5px; left: 50%; transform: translateX(-50%); }
+    .arc-ring-tick::after  { width: 10px; height: 2px; right: -5px; top: 50%; transform: translateY(-50%); }
+
+    @keyframes spin-cw  { to { transform: rotate(360deg); } }
+    @keyframes spin-ccw { to { transform: rotate(-360deg); } }
+
+    #orb-core {
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      position: absolute;
+      background: radial-gradient(circle at 35% 30%,
+        #ffffff 0%, #00d4ff 15%, #0055ff 45%, #001033 80%, #000510 100%);
+      box-shadow:
+        0 0 0 1.5px rgba(0,212,255,0.4),
+        0 0 20px rgba(0,212,255,0.5),
+        0 0 60px rgba(0,100,255,0.3),
+        inset 0 0 25px rgba(0,0,0,0.5);
+      z-index: 5;
+      transition: all 0.4s;
+    }
+    #orb-core::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,212,255,0.5);
+      box-shadow: 0 0 10px rgba(0,212,255,0.5), inset 0 0 10px rgba(0,212,255,0.2);
+    }
+    #orb-core::after {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, #00d4ff 60%);
+      box-shadow: 0 0 14px #00d4ff, 0 0 28px rgba(0,212,255,0.7);
+    }
+
+    /* Orb states */
+    #orb-wrap.idle #orb-core { animation: breathe 4s ease-in-out infinite; }
+    @keyframes breathe {
+      0%,100% { box-shadow: 0 0 0 1.5px rgba(0,212,255,0.4), 0 0 20px rgba(0,212,255,0.5), 0 0 60px rgba(0,100,255,0.3), inset 0 0 25px rgba(0,0,0,0.5); }
+      50%      { box-shadow: 0 0 0 2px rgba(0,212,255,0.6), 0 0 35px rgba(0,212,255,0.8), 0 0 90px rgba(0,100,255,0.5), inset 0 0 25px rgba(0,0,0,0.5); }
+    }
+
+    #orb-wrap.listening #orb-core {
+      animation: listen-pulse 0.7s ease-in-out infinite;
+      background: radial-gradient(circle at 35% 30%, #fff 0%, #00ffff 15%, #00aaff 45%, #001040 80%);
+    }
+    #orb-wrap.listening .arc-ring-mid { animation-duration: 0.6s; border-top-color: #00ffff; filter: drop-shadow(0 0 8px #00ffff); }
+    @keyframes listen-pulse {
+      0%,100% { transform: scale(1);    box-shadow: 0 0 0 2px rgba(0,212,255,0.7), 0 0 40px rgba(0,212,255,1), 0 0 100px rgba(0,212,255,0.5), inset 0 0 25px rgba(0,0,0,0.4); }
+      50%      { transform: scale(1.07); box-shadow: 0 0 0 5px rgba(0,212,255,0.4), 0 0 60px rgba(0,212,255,1), 0 0 140px rgba(0,212,255,0.6), inset 0 0 25px rgba(0,0,0,0.4); }
+    }
+
+    #orb-wrap.thinking #orb-core {
+      animation: think-rotate 2s linear infinite;
+      background: radial-gradient(circle at 35% 30%, #fff 0%, #bb88ff 15%, #5500cc 45%, #0a0020 80%);
+    }
+    #orb-wrap.thinking .arc-ring-mid { border-top-color: #aa88ff; animation-duration: 1s; filter: drop-shadow(0 0 6px #aa88ff); }
+    @keyframes think-rotate {
+      0%   { filter: hue-rotate(0deg)  brightness(1); }
+      50%  { filter: hue-rotate(40deg) brightness(1.3); }
+      100% { filter: hue-rotate(0deg)  brightness(1); }
+    }
+
+    #orb-wrap.speaking #orb-core {
+      animation: speak-wave 0.45s ease-in-out infinite;
+      background: radial-gradient(circle at 35% 30%, #fff 0%, #88ffcc 15%, #00aa66 45%, #001a10 80%);
+    }
+    #orb-wrap.speaking .arc-ring-mid { border-top-color: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
+    @keyframes speak-wave {
+      0%,100% { transform: scale(1);    box-shadow: 0 0 0 2px rgba(0,255,136,0.5), 0 0 30px rgba(0,255,136,0.7), 0 0 80px rgba(0,255,136,0.3), inset 0 0 25px rgba(0,0,0,0.5); }
+      25%      { transform: scale(1.07); }
+      75%      { transform: scale(0.95); }
+    }
+
+    /* Status text below orb */
+    #orb-status {
+      margin-top: 28px;
       font-size: 12px;
       color: var(--text3);
-      margin-top: 8px;
-      min-height: 18px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
       transition: color 0.3s;
       text-align: center;
     }
-    #status-text.listening { color: var(--cyan); }
-    #status-text.thinking { color: #aa88ff; }
-    #status-text.speaking { color: var(--green); }
-    #status-text.error { color: var(--red); }
+    #orb-status.listening { color: var(--cyan); }
+    #orb-status.thinking  { color: #aa88ff; }
+    #orb-status.speaking  { color: var(--green); }
+
+    /* Tool badges */
+    #tool-badges {
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+      margin-top: 12px; min-height: 24px;
+    }
+    .tool-badge {
+      padding: 4px 12px;
+      border: 1px solid rgba(0,212,255,0.35);
+      background: var(--tool);
+      border-radius: 20px;
+      font-size: 11px;
+      color: var(--cyan);
+      display: flex; align-items: center; gap: 6px;
+      animation: badge-in 0.2s ease;
+    }
+    @keyframes badge-in { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+    .tool-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: badge-dot 0.8s ease-in-out infinite; }
+    @keyframes badge-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* Response text below orb */
+    #response-area {
+      margin-top: 16px;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 100%;
+      max-width: 640px;
+    }
+    #response-area::-webkit-scrollbar { width: 3px; }
+    #response-area::-webkit-scrollbar-thumb { background: var(--border); }
+    #response-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      text-align: center;
+      min-height: 28px;
+    }
+    #response-text strong { color: var(--cyan); font-weight: 600; }
+    #response-text code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 3px; }
+    #response-text pre { text-align: left; background: rgba(0,0,0,0.4); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin: 8px 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; overflow-x: auto; white-space: pre-wrap; }
 
     /* ── BOTTOM INPUT ── */
     #input-bar {
-      width: 100%;
-      padding: 12px 20px 16px;
+      padding: 14px 20px;
       border-top: 1px solid var(--border);
-      background: rgba(13,13,18,0.8);
-      backdrop-filter: blur(20px);
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -500,407 +446,318 @@
     }
     #text-input {
       flex: 1;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s;
-      resize: none;
-      height: 42px;
-      line-height: 22px;
-    }
-    #text-input:focus { border-color: var(--cyan-dim); }
-    #text-input::placeholder { color: var(--text3); }
-    #send-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      border: none;
-      background: var(--cyan);
-      color: #000;
-      font-size: 18px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-    #send-btn:hover { background: #33ddff; transform: scale(1.05); }
-    #send-btn:disabled { background: var(--text3); cursor: not-allowed; transform: none; }
-
-    /* ── RIGHT SETTINGS PANEL ── */
-    #settings-panel {
-      position: fixed;
-      top: 0;
-      right: -400px;
-      width: 380px;
-      height: 100vh;
-      background: var(--bg2);
-      border-left: 1px solid var(--border);
-      z-index: 100;
-      transition: right 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    #settings-panel.open { right: 0; }
-
-    .panel-header {
-      padding: 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .panel-header h2 { font-size: 15px; font-weight: 600; }
-    .panel-close { background: none; border: none; color: var(--text2); font-size: 20px; cursor: pointer; padding: 4px; }
-    .panel-close:hover { color: var(--text); }
-
-    .panel-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-    .panel-body::-webkit-scrollbar { width: 4px; }
-    .panel-body::-webkit-scrollbar-thumb { background: var(--border); }
-
-    .form-group { margin-bottom: 20px; }
-    .form-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text2); margin-bottom: 8px; display: block; }
-    .form-input {
-      width: 100%;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 12px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus { border-color: var(--cyan-dim); }
-    textarea.form-input { resize: vertical; min-height: 100px; font-size: 12px; line-height: 1.5; }
-
-    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
-    .toggle {
-      width: 44px;
-      height: 24px;
-      border-radius: 12px;
-      background: var(--text3);
-      border: none;
-      cursor: pointer;
-      position: relative;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
-    .toggle.on { background: var(--cyan); }
-    .toggle::after {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: white;
-      top: 3px;
-      left: 3px;
-      transition: left 0.2s;
-    }
-    .toggle.on::after { left: 23px; }
-
-    .save-btn {
-      width: 100%;
-      padding: 11px;
-      border-radius: 8px;
-      border: none;
-      background: var(--cyan);
-      color: #000;
-      font-family: 'Inter', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .save-btn:hover { background: #33ddff; }
-
-    .section-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
-
-    .memory-item {
-      padding: 10px 12px;
-      border-radius: 8px;
       background: var(--panel);
       border: 1px solid var(--border);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      height: 40px;
+      line-height: 1.4;
+      transition: border-color 0.2s;
     }
-    .memory-item .mem-content { flex: 1; font-size: 12px; color: var(--text2); line-height: 1.4; }
-    .memory-item .mem-type { font-size: 10px; color: var(--cyan); background: var(--tool-bg); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-    .memory-item .mem-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 0; flex-shrink: 0; }
-    .memory-item .mem-del:hover { color: var(--red); }
+    #text-input:focus { border-color: rgba(0,212,255,0.4); }
+    #text-input::placeholder { color: var(--text3); }
+    #send-btn {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      background: rgba(0,212,255,0.15);
+      border: 1px solid rgba(0,212,255,0.3);
+      color: var(--cyan);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    #send-btn:hover { background: rgba(0,212,255,0.25); }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ── OVERLAY ── */
-    #overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 99;
+    #sidebar-toggle {
+      width: 34px; height: 34px;
+      border-radius: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    #sidebar-toggle:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(20,20,28,0.95);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 12px;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.3s;
-    }
-    #overlay.visible { opacity: 1; pointer-events: all; }
-
-    /* ── VOICE HINT ── */
-    #voice-hint {
-      position: absolute;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 11px;
-      color: var(--text3);
+      transition: all 0.3s;
+      z-index: 100;
       white-space: nowrap;
     }
-
-    /* ── ERROR TOAST ── */
-    #toast {
-      position: fixed;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(255,68,68,0.15);
-      border: 1px solid rgba(255,68,68,0.4);
-      color: #ff8888;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      opacity: 0;
-      transition: all 0.3s;
-      z-index: 200;
-      pointer-events: none;
-    }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.error { border-color: var(--red); color: var(--red); }
   </style>
 </head>
 <body>
 
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <span class="logo">J·A·R·V·I·S</span>
-    <div class="actions">
-      <button class="icon-btn" id="sidebar-toggle" title="Toggle history">☰</button>
-      <button class="icon-btn" id="memory-btn" title="Memory">🧠</button>
-      <button class="icon-btn" id="settings-btn" title="Settings">⚙</button>
+  <div id="titlebar">
+    <span class="title">J · A · R · V · I · S</span>
+    <div class="controls">
+      <button id="history-btn">Chat History</button>
+      <button id="clear-btn">New Chat</button>
     </div>
   </div>
 
-  <!-- BODY -->
-  <div id="body">
+  <div id="layout">
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR: past conversations -->
     <div id="sidebar">
       <div id="sidebar-header">
-        <button id="new-chat-btn">＋ New conversation</button>
+        <span>Past Conversations</span>
       </div>
-      <div id="sidebar-section">Recent</div>
+      <button id="new-chat-btn">+ New Chat</button>
       <div id="chat-list"></div>
       <div id="sidebar-footer">
-        <button class="sidebar-footer-btn" id="clear-btn">🗑 Clear conversation</button>
+        <div id="tts-toggle">
+          <div class="toggle-switch on" id="tts-switch"></div>
+          <span>JARVIS Voice</span>
+        </div>
       </div>
     </div>
 
     <!-- MAIN -->
     <div id="main">
 
-      <!-- User text above orb -->
-      <div id="user-text"></div>
+      <!-- OLD CHAT VIEW -->
+      <div id="chat-view"></div>
 
-      <!-- ARC REACTOR ORB -->
-      <div id="orb-container" class="idle" title="Click to speak">
-        <div class="arc-pulse"></div>
-        <div class="arc-pulse"></div>
-        <div class="arc-pulse"></div>
-        <div class="arc-ring-3"></div>
-        <div class="arc-ring-2"></div>
-        <div class="arc-ring-1"></div>
-        <div class="arc-ring-inner"></div>
-        <div id="orb"><span id="orb-icon"></span></div>
+      <!-- ORB VIEW (live) -->
+      <div id="orb-view">
+        <div id="user-text"></div>
+
+        <div id="orb-wrap" class="idle">
+          <div class="arc-pulse"></div>
+          <div class="arc-pulse"></div>
+          <div class="arc-pulse"></div>
+          <div class="arc-ring arc-ring-outer"></div>
+          <div class="arc-ring arc-ring-mid"></div>
+          <div class="arc-ring arc-ring-inner"></div>
+          <div class="arc-ring arc-ring-tick"></div>
+          <div id="orb-core"></div>
+        </div>
+
+        <div id="orb-status">Click to speak</div>
+        <div id="tool-badges"></div>
+
+        <div id="response-area">
+          <div id="response-text"></div>
+        </div>
       </div>
 
-      <!-- Tool badges -->
-      <div id="tool-badges"></div>
-
-      <!-- Status -->
-      <div id="status-text">Click the orb to speak, or type below</div>
-
-      <!-- Response below orb -->
-      <div id="response-area">
-        <div id="response-text"></div>
+      <!-- INPUT BAR -->
+      <div id="input-bar">
+        <button id="sidebar-toggle">☰</button>
+        <textarea id="text-input" placeholder="Or type here… (Enter to send)" rows="1"></textarea>
+        <button id="send-btn">↑</button>
       </div>
 
-      <div id="voice-hint">⌘⇧J to show/hide · Click orb to speak</div>
-
-    </div>
-
-  </div>
-
-  <!-- BOTTOM INPUT -->
-  <div id="input-bar">
-    <textarea id="text-input" placeholder="Or type here..." rows="1"></textarea>
-    <button id="send-btn">↑</button>
-  </div>
-
-  <!-- SETTINGS PANEL -->
-  <div id="overlay"></div>
-  <div id="settings-panel">
-    <div class="panel-header">
-      <h2 id="panel-title">Settings</h2>
-      <button class="panel-close" id="panel-close">✕</button>
-    </div>
-    <div class="panel-body" id="panel-body">
-      <!-- filled dynamically -->
     </div>
   </div>
 
-  <!-- ERROR TOAST -->
   <div id="toast"></div>
 
   <script>
-  (function() {
-    'use strict';
-
-    // ── State ──────────────────────────────────────────────────────────────────
-    const state = {
-      orbState: 'idle',       // idle | listening | thinking | speaking
-      isProcessing: false,
-      conversationHistory: [],
-      settings: {},
-      currentConvId: null,
-      panelMode: null,        // null | 'settings' | 'memory'
-    };
-
-    // ── Elements ───────────────────────────────────────────────────────────────
-    const orb = document.getElementById('orb-container');
-    const orbIcon = document.getElementById('orb-icon');
-    const userText = document.getElementById('user-text');
+    const orbWrap    = document.getElementById('orb-wrap');
+    const orbStatus  = document.getElementById('orb-status');
+    const userText   = document.getElementById('user-text');
     const responseText = document.getElementById('response-text');
     const responseArea = document.getElementById('response-area');
     const toolBadges = document.getElementById('tool-badges');
-    const statusText = document.getElementById('status-text');
-    const textInput = document.getElementById('text-input');
-    const sendBtn = document.getElementById('send-btn');
-    const chatList = document.getElementById('chat-list');
-    const settingsPanel = document.getElementById('settings-panel');
-    const overlay = document.getElementById('overlay');
-    const panelBody = document.getElementById('panel-body');
-    const panelTitle = document.getElementById('panel-title');
-    const toast = document.getElementById('toast');
+    const textInput  = document.getElementById('text-input');
+    const sendBtn    = document.getElementById('send-btn');
+    const chatView   = document.getElementById('chat-view');
+    const orbView    = document.getElementById('orb-view');
+    const chatList   = document.getElementById('chat-list');
+    const sidebar    = document.getElementById('sidebar');
+    const ttsSwitch  = document.getElementById('tts-switch');
+    const toast      = document.getElementById('toast');
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    const state = {
+      ttsOn: true,
+      processing: false,
+      history: [],          // current conversation messages
+      buffer: '',
+      streamTimeout: null,
+      viewingOld: false,
+      sidebarOpen: true
+    };
 
     // ── Helpers ────────────────────────────────────────────────────────────────
-    function setOrbState(s) {
-      state.orbState = s;
-      orb.className = s;
-      statusText.className = s;
-      const labels = {
-        idle: 'Click to speak with JARVIS',
-        listening: 'Listening… speak now',
-        thinking: 'JARVIS is thinking…',
-        speaking: 'JARVIS is speaking…'
-      };
-      statusText.textContent = labels[s] || '';
+    function setOrb(s) {
+      orbWrap.className = s;
+      orbStatus.className = s;
+      const labels = { idle:'Click to speak', listening:'Listening…', thinking:'Thinking…', speaking:'Speaking…' };
+      orbStatus.textContent = labels[s] || '';
     }
 
-    function showToast(msg, duration = 3000) {
+    function showToast(msg, isError) {
       toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), duration);
+      toast.className = 'show' + (isError ? ' error' : '');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.className = ''; }, 3000);
     }
 
-    function showUserText(text) {
-      userText.textContent = '"' + text + '"';
-      userText.classList.add('visible');
-    }
-
-    function clearResponse() {
-      responseText.innerHTML = '';
-      toolBadges.innerHTML = '';
-    }
-
-    // Basic markdown → HTML
-    function renderMarkdown(text) {
+    function md(text) {
       return text
         .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
-        .replace(/`([^`]+)`/g, '<span class="code-inline">$1</span>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
         .replace(/\*([^*]+)\*/g, '<em>$1</em>')
         .replace(/\n/g, '<br>');
     }
 
-    // ── Tool badges ────────────────────────────────────────────────────────────
-    const activeBadges = {};
+    function appendToken(tok) {
+      state.buffer += tok;
+      clearTimeout(state.streamTimeout);
+      state.streamTimeout = setTimeout(() => {
+        responseText.innerHTML = md(state.buffer);
+        responseArea.scrollTop = responseArea.scrollHeight;
+      }, 16);
+    }
 
     function showToolBadge(name) {
-      const badge = document.createElement('div');
-      badge.className = 'tool-badge';
-      badge.innerHTML = `<span class="spinner"></span><span>🔧 ${name.replace(/_/g,' ')}</span>`;
-      toolBadges.appendChild(badge);
-      activeBadges[name] = badge;
+      const el = document.createElement('div');
+      el.className = 'tool-badge';
+      el.id = 'tool-' + name;
+      el.textContent = name.replace(/_/g, ' ');
+      toolBadges.appendChild(el);
     }
 
     function removeToolBadge(name) {
-      if (activeBadges[name]) {
-        activeBadges[name].remove();
-        delete activeBadges[name];
-      }
+      const el = document.getElementById('tool-' + name);
+      if (el) el.remove();
     }
 
-    // ── Streaming ──────────────────────────────────────────────────────────────
-    let streamBuffer = '';
-    let streamTimeout = null;
-
-    function appendToken(token) {
-      streamBuffer += token;
-      if (streamTimeout) clearTimeout(streamTimeout);
-      streamTimeout = setTimeout(flushBuffer, 16);
+    // ── Conversation persistence ───────────────────────────────────────────────
+    function saveConversation(firstMsg) {
+      const convos = JSON.parse(localStorage.getItem('jarvis_convos') || '[]');
+      const id = Date.now();
+      convos.unshift({ id, preview: firstMsg.substring(0, 60), time: new Date().toLocaleString(), messages: [] });
+      if (convos.length > 50) convos.length = 50;
+      localStorage.setItem('jarvis_convos', JSON.stringify(convos));
+      localStorage.setItem('jarvis_active', id);
+      renderChatList();
+      return id;
     }
 
-    function flushBuffer() {
-      if (streamBuffer) {
-        responseText.innerHTML = renderMarkdown(streamBuffer);
-        responseArea.scrollTop = responseArea.scrollHeight;
+    function updateConversation(id, messages) {
+      const convos = JSON.parse(localStorage.getItem('jarvis_convos') || '[]');
+      const c = convos.find(c => c.id == id);
+      if (c) { c.messages = messages; localStorage.setItem('jarvis_convos', JSON.stringify(convos)); }
+    }
+
+    function renderChatList() {
+      const convos = JSON.parse(localStorage.getItem('jarvis_convos') || '[]');
+      const active = localStorage.getItem('jarvis_active');
+      chatList.innerHTML = '';
+      if (convos.length === 0) {
+        chatList.innerHTML = '<div style="padding:16px;font-size:11px;color:var(--text3);text-align:center">No past conversations</div>';
+        return;
       }
+      convos.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'chat-item' + (c.id == active ? ' active' : '');
+        el.innerHTML = `<div class="chat-preview">${c.preview}</div><div class="chat-time">${c.time}</div>`;
+        el.addEventListener('click', () => viewConversation(c));
+        chatList.appendChild(el);
+      });
+    }
+
+    function viewConversation(c) {
+      state.viewingOld = true;
+      orbView.style.display = 'none';
+      chatView.className = 'visible';
+      chatView.innerHTML = '';
+
+      if (!c.messages || c.messages.length === 0) {
+        chatView.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px">No messages saved for this conversation.</div>';
+      } else {
+        c.messages.forEach(m => addMsgBubble(m.role, m.content));
+      }
+
+      // Update active
+      document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function addMsgBubble(role, content) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg ' + role;
+      const avatar = document.createElement('div');
+      avatar.className = 'msg-avatar';
+      avatar.textContent = role === 'jarvis' ? 'J' : 'U';
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      bubble.innerHTML = md(content);
+      const time = document.createElement('div');
+      time.className = 'msg-time';
+      time.textContent = new Date().toLocaleTimeString();
+      wrap.appendChild(avatar);
+      const inner = document.createElement('div');
+      inner.appendChild(bubble);
+      inner.appendChild(time);
+      wrap.appendChild(inner);
+      chatView.appendChild(wrap);
+      chatView.scrollTop = chatView.scrollHeight;
+    }
+
+    function backToOrb() {
+      state.viewingOld = false;
+      chatView.className = '';
+      orbView.style.display = '';
     }
 
     // ── Send message ───────────────────────────────────────────────────────────
+    let activeConvoId = null;
+
     async function sendMessage(text) {
-      if (!text.trim() || state.isProcessing) return;
-      state.isProcessing = true;
+      if (!text || state.processing) return;
+      state.processing = true;
       sendBtn.disabled = true;
 
-      showUserText(text);
-      clearResponse();
-      setOrbState('thinking');
-      streamBuffer = '';
+      // First message in new convo → save
+      if (state.history.length === 0) {
+        activeConvoId = saveConversation(text);
+      }
 
-      // Add to history
-      state.conversationHistory.push({ role: 'user', content: text });
-      if (state.conversationHistory.length > 40) state.conversationHistory.splice(0, 2);
+      // Show in orb view
+      if (state.viewingOld) backToOrb();
+      userText.textContent = text;
+      userText.classList.add('visible');
+      state.buffer = '';
+      responseText.innerHTML = '';
+      toolBadges.innerHTML = '';
+      setOrb('thinking');
 
-      // Save to localStorage
-      saveConversation(text);
+      state.history.push({ role: 'user', content: text });
 
-      // Remove old listeners
       window.jarvis.removeListeners('chat:token');
       window.jarvis.removeListeners('chat:done');
       window.jarvis.removeListeners('chat:error');
 
-      // Set up listeners
-      window.jarvis.onToken((data) => {
+      window.jarvis.onToken(data => {
         if (data.type === 'text') {
           appendToken(data.token);
         } else if (data.type === 'tool_start') {
@@ -910,247 +767,125 @@
         }
       });
 
-      window.jarvis.onDone((data) => {
-        flushBuffer();
+      window.jarvis.onDone(data => {
+        clearTimeout(state.streamTimeout);
+        responseText.innerHTML = md(state.buffer);
         toolBadges.innerHTML = '';
-        state.conversationHistory.push({ role: 'assistant', content: data.fullResponse });
-        setOrbState('idle');
-        state.isProcessing = false;
+
+        const resp = data.fullResponse || state.buffer;
+        state.history.push({ role: 'assistant', content: resp });
+
+        // Save full messages to localStorage
+        if (activeConvoId) updateConversation(activeConvoId, state.history.map(m => ({
+          role: m.role === 'assistant' ? 'jarvis' : m.role,
+          content: m.content
+        })));
+
+        if (state.ttsOn) {
+          setOrb('speaking');
+          // TTS is handled server-side; set idle after estimated time
+          const words = resp.split(' ').length;
+          const ms = Math.max(2000, words * 350);
+          setTimeout(() => setOrb('idle'), ms);
+        } else {
+          setOrb('idle');
+        }
+
+        state.processing = false;
         sendBtn.disabled = false;
         userText.classList.remove('visible');
       });
 
-      window.jarvis.onError((data) => {
+      window.jarvis.onError(data => {
         toolBadges.innerHTML = '';
-        showToast('Error: ' + data.error);
-        setOrbState('idle');
-        state.isProcessing = false;
+        showToast(data.error, true);
+        setOrb('idle');
+        state.processing = false;
         sendBtn.disabled = false;
       });
 
-      window.jarvis.sendMessage(text, state.conversationHistory);
+      window.jarvis.sendMessage(text, state.history.slice(0, -1));
     }
 
-    // ── Voice flow ─────────────────────────────────────────────────────────────
+    // ── Voice ──────────────────────────────────────────────────────────────────
     async function startVoice() {
-      if (state.isProcessing) return;
-      setOrbState('listening');
-
+      if (state.processing) return;
+      setOrb('listening');
       try {
-        const result = await window.jarvis.listen();
-        if (result.error) {
-          showToast('Voice error: ' + result.error);
-          setOrbState('idle');
-          return;
-        }
-        const transcript = (result.transcript || '').trim();
-        if (!transcript) {
-          showToast('No speech detected');
-          setOrbState('idle');
-          return;
-        }
+        const r = await window.jarvis.listen();
+        if (r.error) { showToast('Voice error: ' + r.error, true); setOrb('idle'); return; }
+        const t = (r.transcript || '').trim();
+        if (!t) { showToast('No speech detected'); setOrb('idle'); return; }
         textInput.value = '';
-        await sendMessage(transcript);
-      } catch (err) {
-        showToast('Voice error: ' + err.message);
-        setOrbState('idle');
+        await sendMessage(t);
+      } catch (e) {
+        showToast('Voice error: ' + e.message, true);
+        setOrb('idle');
       }
     }
 
-    orb.addEventListener('click', startVoice);
+    orbWrap.addEventListener('click', startVoice);
 
     // ── Text input ─────────────────────────────────────────────────────────────
-    textInput.addEventListener('keydown', (e) => {
+    textInput.addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        const text = textInput.value.trim();
-        if (text) {
-          textInput.value = '';
-          sendMessage(text);
-        }
+        const t = textInput.value.trim();
+        if (t) { textInput.value = ''; sendMessage(t); }
       }
     });
 
     sendBtn.addEventListener('click', () => {
-      const text = textInput.value.trim();
-      if (text) {
-        textInput.value = '';
-        sendMessage(text);
-      }
+      const t = textInput.value.trim();
+      if (t) { textInput.value = ''; sendMessage(t); }
     });
 
-    // ── Sidebar toggle ─────────────────────────────────────────────────────────
-    document.getElementById('sidebar-toggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-    });
-
-    // ── New chat ───────────────────────────────────────────────────────────────
-    document.getElementById('new-chat-btn').addEventListener('click', () => {
-      state.conversationHistory = [];
-      clearResponse();
-      userText.classList.remove('visible');
-      userText.textContent = '';
-      setOrbState('idle');
-      state.currentConvId = null;
-    });
-
-    // ── Clear ──────────────────────────────────────────────────────────────────
+    // ── Controls ───────────────────────────────────────────────────────────────
     document.getElementById('clear-btn').addEventListener('click', () => {
-      state.conversationHistory = [];
-      clearResponse();
+      state.history = [];
+      state.buffer = '';
+      activeConvoId = null;
+      responseText.innerHTML = '';
+      userText.textContent = '';
       userText.classList.remove('visible');
+      toolBadges.innerHTML = '';
+      setOrb('idle');
+      if (state.viewingOld) backToOrb();
     });
 
-    // ── Past conversations (localStorage) ─────────────────────────────────────
-    function getConversations() {
-      try { return JSON.parse(localStorage.getItem('jarvis_convs') || '[]'); } catch { return []; }
-    }
+    document.getElementById('history-btn').addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      state.sidebarOpen = !state.sidebarOpen;
+    });
 
-    function saveConversation(firstMsg) {
-      if (state.currentConvId) return; // already saved this session
-      const convs = getConversations();
-      const id = Date.now();
-      state.currentConvId = id;
-      convs.unshift({ id, preview: firstMsg.substring(0, 60), time: new Date().toLocaleString() });
-      if (convs.length > 30) convs.pop();
-      localStorage.setItem('jarvis_convs', JSON.stringify(convs));
-      renderChatList();
-    }
+    document.getElementById('new-chat-btn').addEventListener('click', () => {
+      document.getElementById('clear-btn').click();
+    });
 
-    function renderChatList() {
-      const convs = getConversations();
-      chatList.innerHTML = '';
-      convs.forEach(c => {
-        const item = document.createElement('div');
-        item.className = 'chat-item' + (c.id === state.currentConvId ? ' active' : '');
-        item.innerHTML = `
-          <div class="chat-preview">${c.preview}</div>
-          <div class="chat-time">${c.time}</div>
-          <span class="del-chat" data-id="${c.id}">✕</span>
-        `;
-        item.querySelector('.del-chat').addEventListener('click', (e) => {
-          e.stopPropagation();
-          const convs2 = getConversations().filter(x => x.id !== c.id);
-          localStorage.setItem('jarvis_convs', JSON.stringify(convs2));
-          renderChatList();
-        });
-        chatList.appendChild(item);
-      });
-    }
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
 
-    // ── Panels ─────────────────────────────────────────────────────────────────
-    function openPanel(mode) {
-      state.panelMode = mode;
-      overlay.classList.add('visible');
-      settingsPanel.classList.add('open');
-      if (mode === 'settings') renderSettingsPanel();
-      else if (mode === 'memory') renderMemoryPanel();
-    }
-
-    function closePanel() {
-      settingsPanel.classList.remove('open');
-      overlay.classList.remove('visible');
-      state.panelMode = null;
-    }
-
-    document.getElementById('settings-btn').addEventListener('click', () => openPanel('settings'));
-    document.getElementById('memory-btn').addEventListener('click', () => openPanel('memory'));
-    document.getElementById('panel-close').addEventListener('click', closePanel);
-    overlay.addEventListener('click', closePanel);
-
-    // ── Settings panel ─────────────────────────────────────────────────────────
-    async function renderSettingsPanel() {
-      panelTitle.textContent = 'Settings';
-      const s = await window.jarvis.getSettings();
-      state.settings = s;
-      panelBody.innerHTML = `
-        <div class="form-group">
-          <label class="form-label">Anthropic API Key</label>
-          <input class="form-input" id="s-apikey" type="password" placeholder="sk-ant-..." value="${s.apiKey || ''}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Your Name</label>
-          <input class="form-input" id="s-username" type="text" value="${s.userName || 'User'}">
-        </div>
-        <div class="form-group">
-          <div class="toggle-row">
-            <label class="form-label" style="margin:0">Text-to-Speech</label>
-            <button class="toggle ${s.ttsEnabled ? 'on' : ''}" id="s-tts"></button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">JARVIS Personality</label>
-          <textarea class="form-input" id="s-prompt">${s.systemPrompt || ''}</textarea>
-        </div>
-        <button class="save-btn" id="s-save">Save Settings</button>
-      `;
-
-      document.getElementById('s-tts').addEventListener('click', function() {
-        this.classList.toggle('on');
-      });
-
-      document.getElementById('s-save').addEventListener('click', async () => {
-        const newSettings = {
-          ...s,
-          userName: document.getElementById('s-username').value,
-          ttsEnabled: document.getElementById('s-tts').classList.contains('on'),
-          systemPrompt: document.getElementById('s-prompt').value,
-        };
-        const apiKey = document.getElementById('s-apikey').value.trim();
-        if (apiKey) newSettings.apiKey = apiKey;
-        await window.jarvis.saveSettings(newSettings);
-        state.settings = newSettings;
-        showToast('Settings saved ✓');
-        closePanel();
-      });
-    }
-
-    // ── Memory panel ───────────────────────────────────────────────────────────
-    async function renderMemoryPanel() {
-      panelTitle.textContent = 'Memory';
-      panelBody.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:10px 0">Loading…</div>';
-      const memories = await window.jarvis.getAllMemories();
-      if (!memories || memories.length === 0) {
-        panelBody.innerHTML = `
-          <div style="text-align:center;padding:40px 0;color:var(--text3)">
-            <div style="font-size:32px;margin-bottom:12px">🧠</div>
-            <div style="font-size:13px">No memories yet.<br>Ask JARVIS to remember something.</div>
-          </div>`;
-        return;
-      }
-      panelBody.innerHTML = `<div style="font-size:12px;color:var(--text2);margin-bottom:16px">${memories.length} memories stored</div>`;
-      memories.forEach(m => {
-        const item = document.createElement('div');
-        item.className = 'memory-item';
-        item.innerHTML = `
-          <div>
-            <span class="mem-type">${m.type || 'general'}</span>
-          </div>
-          <div class="mem-content">${m.content.substring(0, 120)}${m.content.length > 120 ? '…' : ''}</div>
-          <button class="mem-del" data-id="${m.id}">✕</button>
-        `;
-        item.querySelector('.mem-del').addEventListener('click', async function() {
-          await window.jarvis.deleteMemory(parseInt(this.dataset.id));
-          item.remove();
-        });
-        panelBody.appendChild(item);
-      });
-    }
+    ttsSwitch.addEventListener('click', () => {
+      state.ttsOn = !state.ttsOn;
+      ttsSwitch.className = 'toggle-switch' + (state.ttsOn ? ' on' : '');
+      window.jarvis.saveSettings({ ttsEnabled: state.ttsOn });
+    });
 
     // ── Init ───────────────────────────────────────────────────────────────────
     async function init() {
       renderChatList();
       try {
-        state.settings = await window.jarvis.getSettings();
-      } catch (e) {
-        // no settings yet
-      }
-      setOrbState('idle');
+        const s = await window.jarvis.getSettings();
+        if (s) {
+          state.ttsOn = s.ttsEnabled !== false;
+          ttsSwitch.className = 'toggle-switch' + (state.ttsOn ? ' on' : '');
+        }
+      } catch {}
+      setOrb('idle');
     }
 
     init();
-
-  })();
   </script>
 </body>
 </html>
